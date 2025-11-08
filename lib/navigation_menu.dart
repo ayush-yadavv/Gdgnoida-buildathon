@@ -53,8 +53,8 @@ class NavigationMenu extends StatelessWidget {
         label: 'EarRight AI',
       ),
       const NavigationDestination(
-        icon: Icon(Iconsax.setting_2_copy),
-        label: 'Settings',
+        icon: Icon(Iconsax.health_copy),
+        label: 'Health',
       ),
     ];
     return Scaffold(

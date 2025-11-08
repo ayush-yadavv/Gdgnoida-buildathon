@@ -15,6 +15,14 @@ class ImageController extends GetxController {
     nutritionLabelImage.value = null;
   }
 
+  void clearFrontImage() {
+    frontImage.value = null;
+  }
+
+  void clearLabelImage() {
+    nutritionLabelImage.value = null;
+  }
+
   Future<void> captureImage({
     required ImageSource source,
     required bool isFrontImage,

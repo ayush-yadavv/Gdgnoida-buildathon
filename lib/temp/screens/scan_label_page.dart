@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:eat_right/comman/widgets/appbar/appbar.dart';
 import 'package:eat_right/data/services/logic/new_data_model/food_consumption_models/analysis_models/product_analysis_model.dart';
 import 'package:eat_right/data/services/logic/new_data_model/food_consumption_models/nutrients_data_models/nutrient_detail_model.dart';
 import 'package:eat_right/temp/nutrient_insights.dart';
+import 'package:eat_right/temp/screens/detailed_day_view/detailed_day_view_page.dart';
 import 'package:eat_right/temp/screens/scan_label_controller.dart'; // Controller for this page
 import 'package:eat_right/temp/widgets/ask_ai_widget.dart';
 import 'package:eat_right/temp/widgets/nutrient_balance_card.dart';
@@ -13,6 +15,7 @@ import 'package:eat_right/utils/constants/sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ScanLabelPage extends StatelessWidget {
@@ -22,70 +25,83 @@ class ScanLabelPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // Initialize controller using Get.put - ensures a unique controller instance for this page visit
     final controller = Get.put(ScanLabelPageController());
-    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Scan Product Label',
-          style: TextStyle(color: SColors.white),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent, // Make AppBar transparent
-        elevation: 0, // No shadow
-        flexibleSpace: Container(
-          // Apply gradient background
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors:
-                  isDarkMode
-                      ? [SColors.darkerGrey, SColors.dark]
-                      : [SColors.darkerGrey, SColors.dark],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+      appBar: SAppBar(
+        title: Obx(
+          () => AnimatedDefaultTextStyle(
+            style: Theme.of(context).textTheme.titleLarge!,
+            duration: const Duration(milliseconds: 300),
+            child:
+                controller
+                        .productAnalysisResult
+                        .value
+                        ?.productDetails
+                        .fullname !=
+                    null
+                ? FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      controller
+                          .productAnalysisResult
+                          .value!
+                          .productDetails
+                          .fullname,
+
+                      // maxLines: 1,
+                      // overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  )
+                : const Text("Scan Product"),
           ),
         ),
         actions: [
           Obx(
-            // Reset button reacts to scanning step
             () =>
-                controller.scanningStep.value > 0
-                    ? IconButton(
-                      icon: const Icon(
-                        Icons.refresh_rounded,
-                        color: SColors.white,
-                      ), // Use rounded icon
-                      onPressed:
-                          controller.resetScanning, // Use controller method
-                      tooltip: 'Start Over',
-                    )
-                    : const SizedBox.shrink(),
+                controller.productAnalysisResult.value != null ||
+                    controller
+                        .productAnalysisController
+                        .errorMessage
+                        .value
+                        .isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Iconsax.refresh_copy),
+                    onPressed: () {
+                      HapticFeedback.selectionClick();
+                      controller.scanningStep.value =
+                          0; // Reset to initial step
+                      controller.productAnalysisController.clearAnalysis();
+                      controller.imageController.clearImages();
+                    },
+                    tooltip: "Clear Analysis",
+                  )
+                : const SizedBox.shrink(),
           ),
+          SizedBox(width: Sizes.defaultSpace / 2),
         ],
       ),
       body: Obx(
         () => // Body reacts to logging state
             controller
-                    .isLoggingConsumption
-                    .value // Use controller's getter
-                ? _buildLoggingOverlay(context)
-                : _buildMainContent(context, controller),
+                .isLoggingConsumption
+                .value // Use controller's getter
+            ? _buildLoggingOverlay(context)
+            : _buildMainContent(context, controller),
       ),
       floatingActionButton: Obx(
         () => // FAB reacts to scanning step and analysis status
             controller.scanningStep.value == 3 &&
-                    !controller.isAnalyzingProduct.value &&
-                    controller.productAnalysisResult.value?.status
-                            .toLowerCase() !=
-                        'failture'
-                ? FloatingActionButton.extended(
-                  onPressed: controller.logConsumption, // Use controller method
-                  icon: const Icon(Icons.add_chart_rounded),
-                  label: const Text("Log Consumption"),
-                  tooltip: "Save this item to your daily intake",
-                )
-                : const SizedBox.shrink(),
+                !controller.isAnalyzingProduct.value &&
+                controller.productAnalysisResult.value?.status.toLowerCase() !=
+                    'failture'
+            ? FloatingActionButton.extended(
+                onPressed: controller.logConsumption, // Use controller method
+                icon: const Icon(Icons.add_chart_rounded),
+                label: const Text("Log Consumption"),
+                tooltip: "Save this item to your daily intake",
+              )
+            : const SizedBox.shrink(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
@@ -120,35 +136,37 @@ class ScanLabelPage extends StatelessWidget {
   ) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(), // Nice scroll physics
-      child: Padding(
-        // Adjust bottom padding based on FAB visibility for better spacing
-        padding: EdgeInsets.only(
-          bottom:
-              controller.scanningStep.value == 3
-                  ? Sizes.buttonHeight * 2.5
-                  : Sizes.defaultSpace,
-          left: Sizes.defaultSpace / 4,
-          right: Sizes.defaultSpace / 4,
-          top: Sizes.s,
-        ),
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.center, // Center items like cards
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Step-by-step instruction cards
-            _buildScanningStepsUI(context, controller),
+      child: Obx(
+        () => Padding(
+          // Adjust bottom padding based on FAB visibility for better spacing
+          padding: EdgeInsets.only(
+            left: Sizes.defaultSpace,
+            right: Sizes.defaultSpace,
+            // top: Sizes.s,
+          ),
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.center, // Center items like cards
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Show progress indicator when analyzing
+              if (controller.isAnalyzingProduct.value)
+                const LinearProgressIndicator(),
 
-            // Image previews (shown when images are available)
-            _buildImagePreviewSection(context, controller),
+              // Image previews (shown when images are available)
+              _buildImagePreviewSection(context, controller),
 
-            // Analysis results, loading indicator, or error message
-            _buildAnalysisSection(context, controller),
+              // Step-by-step instruction cards
+              _buildScanningStepsUI(context, controller),
 
-            // Add extra space at the bottom if analysis is complete for scrolling
-            if (controller.scanningStep.value == 3)
+              // Analysis results, loading indicator, or error message
+              _buildAnalysisSection(context, controller),
+
+              // Add extra space at the bottom if analysis is complete for scrolling
+              // if (controller.scanningStep.value == 3)
               const SizedBox(height: Sizes.spaceBtwSections),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -203,10 +221,9 @@ class ScanLabelPage extends StatelessWidget {
       case 1: // Scan Product Front
         title = "Step 1: Scan Product Front";
         instruction = "Take or select a clear picture of the product's front.";
-        icon = Icons.camera_enhance_outlined;
-        iconColor = Colors.blueAccent;
+        icon = Iconsax.camera_copy;
+        iconColor = Theme.of(context).primaryColor;
         actionButtons = _buildCaptureButtons(
-          context: context,
           onCamera: () => controller.captureFoodImage(ImageSource.camera),
           onGallery: () => controller.captureFoodImage(ImageSource.gallery),
         );
@@ -214,10 +231,9 @@ class ScanLabelPage extends StatelessWidget {
       case 2: // Scan Label
         title = "Step 2: Scan Nutrition Label";
         instruction = "Take or select a clear picture of the nutrition facts.";
-        icon = Icons.document_scanner_outlined;
-        iconColor = Colors.orangeAccent;
+        icon = Iconsax.scanner_copy;
+        iconColor = Theme.of(context).primaryColor;
         actionButtons = _buildCaptureButtons(
-          context: context,
           onCamera: () => controller.captureLabelImage(ImageSource.camera),
           onGallery: () => controller.captureLabelImage(ImageSource.gallery),
         );
@@ -225,30 +241,30 @@ class ScanLabelPage extends StatelessWidget {
       case 3: // Analyze
         title = "Ready to Analyze!";
         instruction = "Both images captured. Let's see the details!";
-        icon = Icons.auto_fix_high_outlined;
-        iconColor = Colors.purpleAccent;
+        icon = Icons.auto_awesome_rounded;
+        iconColor = Theme.of(context).primaryColor;
         showAnalyzeButton = true;
         actionButtons = Obx(
           () =>
               controller
-                      .isAnalyzingProduct
-                      .value // Observe analyzing state
-                  ? _buildLoadingIndicator("Analyzing...", context)
-                  : ElevatedButton.icon(
-                    icon: const Icon(Icons.science_outlined),
-                    label: const Text("Analyze Now"),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 12,
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    onPressed: controller.analyzeImages,
-                  ),
+                  .isAnalyzingProduct
+                  .value // Observe analyzing state
+              ? _buildLoadingIndicator("Analyzing...", context)
+              : OutlinedButton.icon(
+                  icon: const Icon(Icons.science_outlined),
+                  label: const Text("Analyze Now"),
+                  // style: OutlinedButton.styleFrom(
+                  //   padding: const EdgeInsets.symmetric(
+                  //     horizontal: 32,
+                  //     vertical: 12,
+                  //   ),
+                  //   textStyle: const TextStyle(
+                  //     fontSize: 16,
+                  //     fontWeight: FontWeight.w600,
+                  //   ),
+                  // ),
+                  onPressed: controller.analyzeImages,
+                ),
         );
         break;
       default:
@@ -256,15 +272,10 @@ class ScanLabelPage extends StatelessWidget {
     }
 
     return Card(
-      margin: const EdgeInsets.symmetric(
-        horizontal: Sizes.defaultSpace / 2,
-        vertical: Sizes.s,
-      ),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(Sizes.cardRadiusLg),
-      ),
-      child: Padding(
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(Sizes.m),
         child: Column(
           children: [
@@ -274,16 +285,16 @@ class ScanLabelPage extends StatelessWidget {
               title,
               style: Theme.of(
                 context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: Sizes.xs),
+            const SizedBox(height: Sizes.spaceBtwItems / 2),
             Text(
               instruction,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.labelMedium,
             ),
-            const SizedBox(height: Sizes.m),
+            const SizedBox(height: Sizes.spaceBtwItems),
             actionButtons, // Display the relevant buttons/indicator
           ],
         ),
@@ -293,21 +304,20 @@ class ScanLabelPage extends StatelessWidget {
 
   // Helper to build Camera/Gallery buttons consistently
   Widget _buildCaptureButtons({
-    required context,
     required VoidCallback onCamera,
     required VoidCallback onGallery,
   }) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton.icon(
-          icon: const Icon(Icons.camera_alt),
+        OutlinedButton.icon(
+          icon: const Icon(Iconsax.camera),
           label: const Text("Camera"),
-          style: Theme.of(context).elevatedButtonTheme.style,
           onPressed: onCamera,
         ),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.photo_library),
+        const SizedBox(width: Sizes.defaultSpace),
+        OutlinedButton.icon(
+          icon: const Icon(Iconsax.gallery),
           label: const Text("Gallery"),
           onPressed: onGallery,
         ),
@@ -330,60 +340,81 @@ class ScanLabelPage extends StatelessWidget {
       }
 
       return Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: Sizes.defaultSpace,
-          vertical: Sizes.m,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: Sizes.s),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Captured Images",
-              style: Theme.of(context).textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: Sizes.spaceBtwItems / 2),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Show front image preview if available
-                if (frontImg != null)
-                  Expanded(
-                    flex:
-                        labelImg != null
-                            ? 1
-                            : 0, // Takes half width if label image also exists
-                    child: ImagePreviewTileSimple(
-                      // Use the simplified preview widget
-                      title: "Product Front",
-                      imageFile: frontImg,
-                      // Allow retaking the image by tapping
-                      onTap:
-                          () => controller.captureFoodImage(
-                            ImageSource.camera,
-                          ), // Example: Retake with camera
-                    ),
-                  ),
-                // Spacer if both images exist
-                if (frontImg != null && labelImg != null)
-                  const SizedBox(width: Sizes.spaceBtwItems),
-                // Show label image preview if available
-                if (labelImg != null)
-                  Expanded(
-                    flex: frontImg != null ? 1 : 0,
-                    child: ImagePreviewTileSimple(
-                      title: "Nutrition Label",
-                      imageFile: labelImg,
-                      onTap:
-                          () =>
-                              controller.captureLabelImage(ImageSource.camera),
-                    ),
-                  ),
-              ],
-            ),
             const SizedBox(height: Sizes.s),
-            // const Divider(),
+            // Front Image Card
+            if (frontImg != null)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ImagePreviewCard(
+                    title: "Product",
+                    imageFile: frontImg,
+                    isFrontImage: true,
+                    onRetake: () =>
+                        controller.captureFoodImage(ImageSource.camera),
+                    onDelete: () =>
+                        controller.imageController.clearFrontImage(),
+                  ),
+                  const SizedBox(height: Sizes.m),
+                ],
+              ),
+
+            // Label Image Card
+            if (labelImg != null)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ImagePreviewCard(
+                    title: "Nutrition Label",
+                    imageFile: labelImg,
+                    isFrontImage: false,
+                    onRetake: () =>
+                        controller.captureLabelImage(ImageSource.camera),
+                    onDelete: () =>
+                        controller.imageController.clearLabelImage(),
+                  ),
+                  const SizedBox(height: Sizes.m),
+                ],
+              ),
+
+            // Add Image Button (if any image is missing)
+            if (frontImg == null || labelImg == null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: Sizes.s),
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    if (frontImg == null) {
+                      controller.captureFoodImage(ImageSource.camera);
+                    } else if (labelImg == null) {
+                      controller.captureLabelImage(ImageSource.camera);
+                    }
+                  },
+                  icon: const Icon(Icons.add_photo_alternate_outlined),
+                  label: Text(
+                    frontImg == null
+                        ? 'Add Product Front Image'
+                        : 'Add Nutrition Label Image',
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Theme.of(context).primaryColor,
+                    side: BorderSide(
+                      color: Theme.of(context).primaryColor.withOpacity(0.5),
+                      width: 1,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(Sizes.buttonRadius),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       );
@@ -419,9 +450,25 @@ class ScanLabelPage extends StatelessWidget {
             horizontal: Sizes.defaultSpace,
             vertical: Sizes.m,
           ),
-          child: Text(
-            "Analysis Error: $errorMsg",
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Analysis Error: $errorMsg",
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              const SizedBox(height: Sizes.spaceBtwItems),
+              ElevatedButton.icon(
+                onPressed:
+                    controller.productAnalysisController.retryLastAnalysis,
+                icon: const Icon(Icons.refresh, size: 20),
+                label: const Text("Retry Analysis"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
+            ],
           ),
         );
       }
@@ -479,18 +526,15 @@ class ScanLabelPage extends StatelessWidget {
       ...analysisResult.nutritionLabel.macroNutrients,
       ...analysisResult.nutritionLabel.microNutrients,
     ];
-    final List<NutrientDetail> goodNutrients =
-        allNutrients
-            .where((n) => n.healthImpact?.toLowerCase() == 'good')
-            .toList();
-    final List<NutrientDetail> moderateNutrients =
-        allNutrients
-            .where((n) => n.healthImpact?.toLowerCase() == 'moderate')
-            .toList();
-    final List<NutrientDetail> badNutrients =
-        allNutrients
-            .where((n) => n.healthImpact?.toLowerCase() == 'bad')
-            .toList();
+    final List<NutrientDetail> goodNutrients = allNutrients
+        .where((n) => n.healthImpact?.toLowerCase() == 'good')
+        .toList();
+    final List<NutrientDetail> moderateNutrients = allNutrients
+        .where((n) => n.healthImpact?.toLowerCase() == 'moderate')
+        .toList();
+    final List<NutrientDetail> badNutrients = allNutrients
+        .where((n) => n.healthImpact?.toLowerCase() == 'bad')
+        .toList();
 
     if (allNutrients.isEmpty) {
       return Padding(
@@ -568,16 +612,15 @@ class ScanLabelPage extends StatelessWidget {
               child: NutrientBalanceCard(
                 issue: concern.issue,
                 explanation: concern.explanation,
-                recommendations:
-                    concern.recommendations
-                        .map(
-                          (rec) => {
-                            'food': rec.food,
-                            'quantity': rec.quantity,
-                            'reasoning': rec.reasoning,
-                          },
-                        )
-                        .toList(),
+                recommendations: concern.recommendations
+                    .map(
+                      (rec) => {
+                        'food': rec.food,
+                        'quantity': rec.quantity,
+                        'reasoning': rec.reasoning,
+                      },
+                    )
+                    .toList(),
               ),
             ),
           ),
@@ -612,15 +655,14 @@ class ScanLabelPage extends StatelessWidget {
               spacing: Sizes.s,
 
               runSpacing: Sizes.s,
-              children:
-                  nutrients
-                      .map(
-                        (nutrientDetail) => NutrientTile.fromNutrientDetail(
-                          nutrientDetail,
-                          nutrientInsights[nutrientDetail.name],
-                        ),
-                      )
-                      .toList(),
+              children: nutrients
+                  .map(
+                    (nutrientDetail) => NutrientTile.fromNutrientDetail(
+                      nutrientDetail,
+                      nutrientInsights[nutrientDetail.name],
+                    ),
+                  )
+                  .toList(),
             ),
           ),
           const SizedBox(height: Sizes.m),
@@ -641,10 +683,9 @@ class ScanLabelPage extends StatelessWidget {
   ) {
     final labelServingSize = analysisResult.nutritionLabel.servingSize;
     final servingValue = labelServingSize?.value?.toDouble();
-    final servingUnitText =
-        (servingValue != null
-            ? "${servingValue.toStringAsFixed(servingValue.truncateToDouble() == servingValue ? 0 : 1)} ${labelServingSize?.unit ?? 'units'}"
-            : null);
+    final servingUnitText = (servingValue != null
+        ? "${servingValue.toStringAsFixed(servingValue.truncateToDouble() == servingValue ? 0 : 1)} ${labelServingSize?.unit ?? 'units'}"
+        : null);
 
     // Hide if label serving size couldn't be determined
     if (servingValue == null || servingValue <= 0) {
@@ -684,10 +725,9 @@ class ScanLabelPage extends StatelessWidget {
                   size: 18,
                   color: Theme.of(context).textTheme.bodySmall?.color,
                 ),
-                onPressed:
-                    () => controller.showEditServingSizeDialog(
-                      context,
-                    ), // Use controller method
+                onPressed: () => controller.showEditServingSizeDialog(
+                  context,
+                ), // Use controller method
                 tooltip: "View Detected Serving Size",
                 visualDensity: VisualDensity.compact,
                 padding: EdgeInsets.zero,
@@ -703,9 +743,8 @@ class ScanLabelPage extends StatelessWidget {
           const SizedBox(height: Sizes.spaceBtwItems),
           // Input field for servings consumed
           TextField(
-            controller:
-                controller
-                    .servingInputController, // Connect to controller's text controller
+            controller: controller
+                .servingInputController, // Connect to controller's text controller
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
@@ -721,9 +760,8 @@ class ScanLabelPage extends StatelessWidget {
                 vertical: 12,
               ),
             ),
-            onChanged:
-                controller
-                    .updateServingsConsumed, // Update reactive variable via controller method
+            onChanged: controller
+                .updateServingsConsumed, // Update reactive variable via controller method
             textAlign: TextAlign.center,
             style: Theme.of(
               context,
@@ -757,90 +795,127 @@ class ScanLabelPage extends StatelessWidget {
 }
 
 // --- Image Preview Tile Widget ---
-class ImagePreviewTileSimple extends StatelessWidget {
+class ImagePreviewCard extends StatelessWidget {
   final String title;
   final File? imageFile;
-  final VoidCallback? onTap;
+  final VoidCallback? onRetake;
+  final VoidCallback? onDelete;
+  final bool isFrontImage;
 
-  const ImagePreviewTileSimple({
+  const ImagePreviewCard({
     super.key,
     required this.title,
     required this.imageFile,
-    this.onTap,
+    this.onRetake,
+    this.onDelete,
+    this.isFrontImage = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: Sizes.xs),
-          child: Text(title, style: Theme.of(context).textTheme.labelLarge),
-        ),
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(Sizes.cardRadiusMd),
-          child: SizedBox(
-            height: 100,
-            width: 100,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(Sizes.cardRadiusMd),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest
-                      .withOpacity(0.5), // Use theme color
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor.withOpacity(0.5),
-                    width: 0.5,
-                  ),
-                  borderRadius: BorderRadius.circular(Sizes.cardRadiusMd),
-                ),
-                child:
-                    imageFile != null
-                        ? Image.file(
-                          imageFile!,
-                          fit: BoxFit.cover,
-                          // loadingBuilder: (context, child, loadingProgress) {
-                          //   if (loadingProgress == null) return child;
-                          //   return const Center(
-                          //     child: CircularProgressIndicator(strokeWidth: 2),
-                          //   );
-                          // },
-                          errorBuilder:
-                              (context, error, stackTrace) => const Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.broken_image_outlined,
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Image Preview
+          SizedBox(
+            height: 180,
+            width: double.infinity,
+            child: imageFile != null
+                ? Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.file(
+                        imageFile!,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.broken_image_outlined,
+                                    color: Colors.grey,
+                                    size: 40,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    "Error loading image",
+                                    style: TextStyle(
                                       color: Colors.grey,
-                                      size: 30,
+                                      fontSize: 12,
                                     ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      "Error",
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 10,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                        )
-                        : const Center(
-                          child: Icon(
-                            Icons.image_not_supported_outlined,
-                            color: Colors.grey,
-                            size: 40,
-                          ),
+                            ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: IconBadge(label: title),
+                      ),
+                    ],
+                  )
+                : Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.image_not_supported_outlined, size: 48),
+                        const SizedBox(height: 8),
+                        Text(
+                          "No image available",
+                          style: Theme.of(context).textTheme.labelMedium,
                         ),
-              ),
+                      ],
+                    ),
+                  ),
+          ),
+          // Action Buttons
+          Container(
+            color: Theme.of(context).cardColor,
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Retake Button
+                TextButton.icon(
+                  icon: const Icon(Iconsax.camera, size: 16),
+                  label: const Text('Retake'),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: onRetake,
+                ),
+                // Delete Button
+                TextButton.icon(
+                  icon: const Icon(Iconsax.trash, size: 16, color: Colors.red),
+                  label: const Text(
+                    'Remove',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: onDelete,
+                ),
+              ],
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

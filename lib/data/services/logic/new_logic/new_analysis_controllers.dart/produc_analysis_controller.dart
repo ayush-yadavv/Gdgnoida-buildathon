@@ -24,6 +24,10 @@ class ProductAnalysisController extends GetxController {
       Rx<ProductAnalysisModel?>(null);
   final RxBool isAnalyzing = false.obs;
   final RxString errorMessage = ''.obs;
+  
+  // Store last analysis parameters for retry
+  File? _lastFrontImage;
+  File? _lastLabelImage;
 
   // --- Public Methods ---
 
@@ -34,11 +38,30 @@ class ProductAnalysisController extends GetxController {
     required File nutritionLabelImage,
   }) async {
     _startAnalysis();
+    // Store the images for potential retry
+    _lastFrontImage = frontImage;
+    _lastLabelImage = nutritionLabelImage;
+    
+    return _performAnalysis(frontImage, nutritionLabelImage);
+  }
+  
+  /// Retry the last analysis
+  Future<bool> retryLastAnalysis() async {
+    if (_lastFrontImage == null || _lastLabelImage == null) {
+      _handleError("No previous analysis to retry");
+      return false;
+    }
+    _startAnalysis();
+    return _performAnalysis(_lastFrontImage!, _lastLabelImage!);
+  }
+  
+  /// Internal method to perform the actual analysis
+  Future<bool> _performAnalysis(File frontImage, File nutritionLabelImage) async {
     try {
       final apiKey = _getApiKey();
       if (apiKey == null) throw Exception("API Key not found.");
 
-      final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
+      final model = GenerativeModel(model: 'gemini-2.5-flash', apiKey: apiKey);
       final frontImageBytes = await frontImage.readAsBytes();
       final labelImageBytes = await nutritionLabelImage.readAsBytes();
 
@@ -134,11 +157,13 @@ class ProductAnalysisController extends GetxController {
   //   }
   // }
 
-  /// Clears the current analysis result and error message.
+  /// Clears the current analysis result, error message, and stored images
   void clearAnalysis() {
     productAnalysisResult.value = null;
     errorMessage.value = '';
     isAnalyzing.value = false;
+    _lastFrontImage = null;
+    _lastLabelImage = null;
   }
 
   // --- Private Helpers ---
@@ -158,7 +183,7 @@ class ProductAnalysisController extends GetxController {
     print(errorMsg);
     errorMessage.value = errorMsg;
     isAnalyzing.value = false;
-    productAnalysisResult.value = null; // Clear potentially partial results
+    // Don't clear the last images on error, so user can retry
   }
 
   String? _getApiKey() {

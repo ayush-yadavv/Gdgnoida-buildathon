@@ -76,14 +76,18 @@ class FoodScanPage extends StatelessWidget {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Iconsax.refresh_copy),
-            onPressed: () {
-              HapticFeedback.selectionClick();
-              mealAnalysisController.clearAnalysis();
-              imageController.clearImages();
-            },
-            tooltip: "Clear Analysis",
+          Obx(
+            () => mealAnalysisController.mealAnalysisResult.value != null
+                ? IconButton(
+                    icon: const Icon(Iconsax.refresh_copy),
+                    onPressed: () {
+                      HapticFeedback.selectionClick();
+                      mealAnalysisController.clearAnalysis();
+                      imageController.clearImages();
+                    },
+                    tooltip: "Clear Analysis",
+                  )
+                : const SizedBox.shrink(),
           ),
           SizedBox(width: Sizes.defaultSpace / 2),
         ],
@@ -106,6 +110,8 @@ class FoodScanPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    if (mealAnalysisController.isAnalyzing.value)
+                      const LinearProgressIndicator(),
                     // Removed extra SizedBox
                     _buildScanningSection(context),
                     if (mealAnalysisController.mealAnalysisResult.value != null)

@@ -2,6 +2,19 @@
 
 **Intelligent Nutrition Analysis & Tracking**
 
+## 📋 Table of Contents
+
+- [✨ Key Features](#-key-features)
+- [🛠️ Technology Stack](#%EF%B8%8F-technology-stack)
+- [🏗️ Architecture Overview](#%EF%B8%8F-architecture-overview)
+- [🚀 Getting Started](#-getting-started)
+- [📸 Screenshots](#-screenshots)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+- [📬 Support](#-support)
+
+---
+
 `eat_right` is a mobile application built with Flutter, designed to help users understand and manage their nutrition through powerful AI-driven analysis and intuitive tracking features.
 
 [![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)](https://flutter.dev)
@@ -43,7 +56,7 @@
 - **Framework:** Flutter
 - **Language:** Dart
 - **State Management:** GetX
-- **AI:** Google Gemini API (Models: `gemini-1.5-flash`, `gemini-pro-vision`)
+- **AI:** Google Gemini API (Models: `gemini-2.5-flash`, `gemini-pro-vision`)
 - **Cloud Database:** Firebase Firestore
 - **Local Storage:** GetStorage
 - **Image Handling:** `image_picker`
@@ -80,35 +93,86 @@ _(Note: The `lib/temp/` directory seems to contain work-in-progress or temporary
 
 ### Prerequisites
 
-- Flutter SDK installed (check with `flutter doctor`)
-- A configured Firebase project.
-- An API Key for Google Gemini API.
+- Flutter SDK (latest stable version)
+- Dart SDK (comes with Flutter)
+- Android Studio / Xcode (for emulator/simulator)
+- Physical device or emulator for testing
+- Firebase project with Firestore database
+- Google Gemini API key
 
-### Setup
+### Installation
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <your-repository-url>
-    cd eat_right
-    ```
-2.  **Install dependencies:**
-    ```bash
-    flutter pub get
-    ```
-3.  **Firebase Setup:**
-    - Place your `google-services.json` (Android) and/or `GoogleService-Info.plist` (iOS) files in the appropriate directories (`android/app/` and `ios/Runner/`). Follow Firebase setup guides for Flutter.
-4.  **Configure API Keys:**
-    - Create a file named `.env` in the root directory of the project.
-    - Add your Google Gemini API key to the `.env` file:
-      ```env
-      GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
-      ```
-    - **Important:** Ensure the `.env` file is added to your `.gitignore` file to prevent committing sensitive keys.
+1. **Clone the repository:**
+
+   ```bash
+   # Clone the repository
+   git clone https://github.com/yourusername/Gdgnoida-buildathon.git
+
+   # Rename the directory to 'eat_right' for local development
+   mv Gdgnoida-buildathon-main eat_right
+
+   # Navigate to the project directory
+   cd eat_right
+   ```
+
+2. **Install dependencies:**
+
+   ```bash
+   flutter pub get
+   ```
+
+3. **Firebase Setup:**
+
+   - Create a new Firebase project at [Firebase Console](https://console.firebase.google.com/)
+   - Add Android/iOS app to your Firebase project
+   - Download the configuration files:
+     - Android: `google-services.json` → `android/app/`
+     - iOS: `GoogleService-Info.plist` → `ios/Runner/`
+   - Enable Firestore Database in your Firebase project
+
+4. **Configure Environment Variables:**
+   - Create a `.env` file in the root directory
+   - Add your Gemini API key:
+     ```env
+     GEMINI_API_KEY=your_gemini_api_key_here
+     ```
+   - Add `.env` to `.gitignore` if not already present
 
 ### Running the App
 
-```bash
-flutter run
-```
+1. **Start the emulator or connect a device**
+2. **Run the app:**
+   ```bash
+   flutter run
+   ```
+3. **For release build:**
+   ```bash
+   flutter build apk --release  # For Android
+   ```
 
-## 📁 Folder Structure (Conceptual)
+## 📸 Screenshots
+
+_Screenshots will be added soon_
+
+## 🤝 Contributing
+
+We welcome contributions to make eat_right even better! Here's how you can help:
+
+1. **Fork** the repository
+2. Create a **branch** for your feature (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add some amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. Open a **Pull Request**
+
+### Code Style
+
+- Follow the [Dart style guide](https://dart.dev/guides/language/effective-dart/style)
+- Use meaningful commit messages
+- Keep your code clean and well-documented
+
+## 📬 Support
+
+For support, questions, or feature requests, please:
+
+- Open an [issue](https://github.com/ayush-yadavv/Gdgnoida-buildathon/issues)
+- Email us at yadav.ayushx1@gmail.com
