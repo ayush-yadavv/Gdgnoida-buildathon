@@ -25,7 +25,7 @@ class NavigationController extends GetxController {
     // const AskAiPage(mealName: "rice", foodImage: null),
     // const chatHomeScreen(),
     // const HealthDashboard(),
-    const profileScreen(),
+    ProfileScreen(),
   ];
 }
 

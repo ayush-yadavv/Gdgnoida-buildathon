@@ -64,9 +64,7 @@ class CustomLlmChatView extends StatelessWidget {
             // color: Theme.of(context).colorScheme.secondaryContainer,
             borderRadius: BorderRadius.circular(100),
           ),
-          textStyle: Theme.of(context).textTheme.labelMedium!.copyWith(
-            color: Theme.of(context).colorScheme.onSecondaryContainer,
-          ),
+          textStyle: Theme.of(context).textTheme.labelMedium,
         ),
         userMessageStyle: UserMessageStyle(
           decoration: BoxDecoration(
@@ -97,6 +95,9 @@ class CustomLlmChatView extends StatelessWidget {
           ),
         ),
         chatInputStyle: ChatInputStyle(
+          textStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
           decoration: BoxDecoration(
             border: Border.all(color: Theme.of(context).colorScheme.outline),

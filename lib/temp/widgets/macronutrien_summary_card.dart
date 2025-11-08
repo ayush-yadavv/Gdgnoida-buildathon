@@ -40,7 +40,7 @@ class MacronutrientSummaryCard extends StatelessWidget {
   // --- Dynamic Color Logic ---
   Color _getColorForMacroPercent(BuildContext context, double percent) {
     // Use Theme colors as base
-    final Color lowColor = Colors.yellow.shade400;
+    final Color lowColor = Colors.orange;
     final Color goodColor = Theme.of(context).colorScheme.primary;
     final Color highColor = Theme.of(context).colorScheme.error; // Red for high
 

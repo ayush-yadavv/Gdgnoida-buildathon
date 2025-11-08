@@ -1,6 +1,5 @@
 // lib/data/services/logic/new_logic/food_consumption_controller.dart
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eat_right/data/repositories/authentication_repo/authentication_repository.dart';
 import 'package:eat_right/data/services/logic/new_data_model/food_consumption_models/analysis_models/meal_analysis_model.dart';
 import 'package:eat_right/data/services/logic/new_data_model/food_consumption_models/analysis_models/product_analysis_model.dart';
@@ -8,34 +7,44 @@ import 'package:eat_right/data/services/logic/new_data_model/food_consumption_mo
 import 'package:eat_right/data/services/logic/new_logic/daily_intake_controller.dart';
 import 'package:eat_right/data/services/logic/new_repo/food_comsumption_repo.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class FoodConsumptionController extends GetxController {
   static FoodConsumptionController get instance => Get.find();
 
-  late final FoodConsumptionRepository consumptionRepo;
-
   // Dependencies
   final DailyIntakeController _dailyIntakeController =
       DailyIntakeController.instance;
-  final AuthenticationRepository _authRepo =
-      AuthenticationRepository.instance; // Get Auth Repo
+  final AuthenticationRepository _authRepo = AuthenticationRepository.instance;
+
+  // Initialize repository
+  final FoodConsumptionRepository consumptionRepo = FoodConsumptionRepository();
 
   // State
   final RxBool isLogging = false.obs;
   final RxString loggingError = ''.obs;
 
-  @override
-  void onInit() async {
-    // Make onInit async
-    super.onInit();
-    // Initialize dependencies that require async setup here
-    final prefs = await SharedPreferences.getInstance(); // Await prefs
-    // Initialize _consumptionRepo after prefs is available
-    consumptionRepo = FoodConsumptionRepository(
-      FirebaseFirestore.instance,
-      prefs,
-    );
+  /// Logs a meal consumption event.
+  /// Fetches consumptions within a date range
+  Future<List<FoodConsumptionModel>> getConsumptionsForDateRange({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final userId = _authRepo.currentUser?.uid;
+      if (userId == null) {
+        throw Exception('User not authenticated');
+      }
+
+      return await consumptionRepo.getConsumptionsForDateRange(
+        startDate,
+        endDate,
+        userId: userId,
+      );
+    } catch (e) {
+      loggingError.value = 'Failed to fetch consumptions: ${e.toString()}';
+      print('Error in getConsumptionsForDateRange: $e');
+      rethrow;
+    }
   }
 
   /// Logs a meal consumption event.

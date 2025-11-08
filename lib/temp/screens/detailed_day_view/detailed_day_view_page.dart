@@ -39,7 +39,12 @@ class DetailedDayViewPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(100),
               color: Theme.of(context).colorScheme.secondaryContainer,
             ),
-            child: Text(DateFormat('MMMM d, yyyy').format(date)),
+            child: Text(
+              DateFormat('MMMM d, yyyy').format(date),
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: Theme.of(context).colorScheme.onSecondaryContainer,
+              ),
+            ),
           ),
         ],
         // centerTitle: true,
@@ -133,7 +138,14 @@ class ConsumptionItemTile extends StatelessWidget {
               )
             : _buildLeadingIcon(item.sourceType), // Icon based on source
       ),
-      title: Text(primaryName, maxLines: 1, overflow: TextOverflow.ellipsis),
+      title: Text(
+        '$primaryName${otherItemCount > 0 ? " (+$otherItemCount more)" : ""}',
+        maxLines: 2,
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+        overflow: TextOverflow.ellipsis,
+      ),
       subtitle: Wrap(
         spacing: 4,
         runSpacing: 4,
@@ -162,9 +174,7 @@ class ConsumptionItemTile extends StatelessWidget {
       ),
       titleAlignment: ListTileTitleAlignment.titleHeight,
 
-      trailing: Text(
-        "$timeString${otherItemCount > 0 ? " (+ $otherItemCount more items)" : ""}", // Show time and other item count
-      ),
+      trailing: Text(timeString),
       // onTap: () {
       // TODO: Navigate to an even more detailed view of this specific consumption event?
       // Get.snackbar("Info", "Tapped on: ${item.sourceName}");

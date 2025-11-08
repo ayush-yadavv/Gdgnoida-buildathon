@@ -17,82 +17,85 @@ class DailyIntakePage extends StatelessWidget {
     // Return the RefreshIndicator + CustomScrollView directly, NOT a Scaffold
     return RefreshIndicator(
       onRefresh: () => controller.refreshWeekData(),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header Section
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: Sizes.defaultSpace,
-                    // vertical: Sizes.appBarHeight / 2,
-                  ),
-                  child: Obx(
-                    () => HeaderCard(selectedDate: controller.selectedDate),
-                  ),
-                ),
-                SizedBox(height: Sizes.spaceBtwItems),
-                Obx(
-                  () => DateSelector(context, controller.selectedDate, (
-                    DateTime newDate,
-                  ) {
-                    HapticFeedback.selectionClick();
-                    controller.selectDate(newDate);
-                  }),
-                ),
-              ],
-            ),
-            SizedBox(height: Sizes.defaultSpace / 3),
-            Divider(),
-            // Content Section
-            SizedBox(height: Sizes.defaultSpace / 2),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: Sizes.defaultSpace),
-              child: Column(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Header Section
+              Column(
                 children: [
-                  // --- Loading and Error Handling ---
-                  Obx(() {
-                    if (controller.isLoading.value &&
-                        controller.currentDailyIntake == null) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: Sizes.spaceBtwSections,
-                          ),
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-                    if (controller.errorMessage.isNotEmpty &&
-                        controller.currentDailyIntake == null) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: Sizes.spaceBtwSections,
-                          ),
-                          child: Text(
-                            'Error: ${controller.errorMessage.value}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
-
-                  // --- Food History Summary Card ---
-                  const FoodHistorySection(),
-                  const SizedBox(height: Sizes.spaceBtwSections),
-
-                  // Add some extra space at the bottom for scrolling past FABs etc.
-                  // const SizedBox(height: Sizes.spaceBtwSections * 2),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Sizes.defaultSpace,
+                      // vertical: Sizes.appBarHeight / 2,
+                    ),
+                    child: Obx(
+                      () => HeaderCard(selectedDate: controller.selectedDate),
+                    ),
+                  ),
+                  SizedBox(height: Sizes.spaceBtwItems),
+                  Obx(
+                    () => DateSelector(context, controller.selectedDate, (
+                      DateTime newDate,
+                    ) {
+                      HapticFeedback.selectionClick();
+                      controller.selectDate(newDate);
+                    }),
+                  ),
                 ],
               ),
-            ),
-          ],
+              SizedBox(height: Sizes.defaultSpace / 3),
+              Divider(),
+              // Content Section
+              SizedBox(height: Sizes.defaultSpace / 2),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: Sizes.defaultSpace),
+                child: Column(
+                  children: [
+                    // --- Loading and Error Handling ---
+                    Obx(() {
+                      if (controller.isLoading.value &&
+                          controller.currentDailyIntake == null) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: Sizes.spaceBtwSections,
+                            ),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      if (controller.errorMessage.isNotEmpty &&
+                          controller.currentDailyIntake == null) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: Sizes.spaceBtwSections,
+                            ),
+                            child: Text(
+                              'Error: ${controller.errorMessage.value}',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+
+                    // --- Food History Summary Card ---
+                    const FoodHistorySection(),
+                    const SizedBox(height: Sizes.spaceBtwSections),
+
+                    // Add some extra space at the bottom for scrolling past FABs etc.
+                    // const SizedBox(height: Sizes.spaceBtwSections * 2),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

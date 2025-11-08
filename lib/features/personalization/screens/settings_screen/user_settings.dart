@@ -13,6 +13,7 @@ class UserSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: SAppBar(
+        removeTitleSpacing: true,
         title: Text(
           'Settings',
           style: Theme.of(context).textTheme.headlineSmall,
@@ -20,22 +21,18 @@ class UserSettings extends StatelessWidget {
         showBackArrow: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(Sizes.defaultSpace),
+        padding: const EdgeInsets.symmetric(horizontal: Sizes.defaultSpace),
         child: Column(
           children: [
-            // const BSectionHeading(
-            //   title: 'Settings',
-            // ),
             const SizedBox(height: Sizes.spaceBtwItems),
             const BSettingMenuTile(
-              title: 'My College',
-              icon: Iconsax.building,
-              subTitle: 'Galgotias College of Engineering and Technology',
+              title: 'Built with',
+              icon: Iconsax.lovely,
+              subTitle: 'Flutter, Firebase, GetX',
             ),
-            const SizedBox(height: Sizes.spaceBtwSections),
+            const SizedBox(height: Sizes.spaceBtwItems),
             // user profile card
             const SUserProfileTile(),
-            const SizedBox(height: Sizes.spaceBtwSections),
             const SizedBox(height: Sizes.spaceBtwSections),
             SizedBox(
               width: double.infinity,
@@ -44,7 +41,7 @@ class UserSettings extends StatelessWidget {
                 child: const Text('Logout'),
               ),
             ),
-            const SizedBox(height: Sizes.spaceBtwSections * 2.5),
+            // const SizedBox(height: Sizes.spaceBtwSections * 2.5),
           ],
         ),
       ),

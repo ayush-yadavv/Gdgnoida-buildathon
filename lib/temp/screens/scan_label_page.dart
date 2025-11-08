@@ -527,9 +527,15 @@ class ScanLabelPage extends StatelessWidget {
         ), // Serving Input
         const Divider(),
         const SizedBox(height: Sizes.spaceBtwItems),
-        InkWell(
-          onTap: controller.navigateToAskAi,
-          child: const AskAiWidget(),
+        Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: controller.navigateToAskAi,
+                child: const AskAiWidget(),
+              ),
+            ),
+          ],
         ), // Ask AI prompt
       ],
     );
@@ -1421,9 +1427,15 @@ class SectionHeadingWithAccent extends StatelessWidget {
 //                   _buildConcernsSection(controller),
 //                   _buildServingSizeSection(context, controller),
 //                   if (controller.nutrientController.servingSize.value > 0)
-//                     InkWell(
-//                       onTap: controller.navigateToAskAi,
-//                       child: const AskAiWidget(),
+//                     Row(
+//                       children: [
+//                         Expanded(
+//                           child: InkWell(
+//                             onTap: controller.navigateToAskAi,
+//                             child: const AskAiWidget(),
+//                           ),
+//                         ),
+//                       ],
 //                     ),
 //                 ],
 //               ),

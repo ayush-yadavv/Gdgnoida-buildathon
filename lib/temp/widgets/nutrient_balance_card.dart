@@ -1,4 +1,3 @@
-import 'package:eat_right/utils/constants/colors.dart';
 import 'package:eat_right/utils/constants/sizes.dart';
 import 'package:flutter/material.dart';
 
@@ -121,7 +120,7 @@ class _RecommendationItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: Sizes.spaceBtwItems),
       padding: const EdgeInsets.all(Sizes.s),
       decoration: BoxDecoration(
-        color: SColors.lightContainer,
+        color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(Sizes.cardRadiusSm),
       ),
       child: Column(
