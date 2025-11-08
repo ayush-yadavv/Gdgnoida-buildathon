@@ -150,9 +150,40 @@ _(Note: The `lib/temp/` directory seems to contain work-in-progress or temporary
    flutter build apk --release  # For Android
    ```
 
+## 🎥 Demo Video
+
+Here's a quick demo of eat_right in action:
+
+<div style="margin: 20px 0; text-align: center;">
+  <video width="80%" controls style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    <source src="screenshots/WhatsApp Video 2025-11-08 at 23.34.32_341b3a18.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+
 ## 📸 Screenshots
 
-_Screenshots will be added soon_
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 20px 0;">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.19_8fb323be.jpg" alt="Screenshot 1" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.20_6239aeb7.jpg" alt="Screenshot 2" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.20_889557e7.jpg" alt="Screenshot 3" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.20_bc954f93.jpg" alt="Screenshot 4" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.21_30bec8c3.jpg" alt="Screenshot 5" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.21_8d3056d6.jpg" alt="Screenshot 6" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.21_d7da7e86.jpg" alt="Screenshot 7" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.21_ee625210.jpg" alt="Screenshot 8" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 20px 0;">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.22_4d47dfc9.jpg" alt="Screenshot 9" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.22_9540bf90.jpg" alt="Screenshot 10" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.22_98e515de.jpg" alt="Screenshot 11" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.22_ae60ed3c.jpg" alt="Screenshot 12" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.23_651e77df.jpg" alt="Screenshot 13" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.23_7a9859d8.jpg" alt="Screenshot 14" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.23_abd18b5c.jpg" alt="Screenshot 15" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="screenshots/WhatsApp Image 2025-11-08 at 23.09.24_3b011dc4.jpg" alt="Screenshot 16" style="width:100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+</div>
 
 ## 🤝 Contributing
 
