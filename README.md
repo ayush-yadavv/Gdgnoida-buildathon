@@ -167,14 +167,14 @@ Here's a quick demo of eat_right in action:
 
 ## 📸 Screenshots
 
-|  |  |  |  |
-|:-:|:-:|:-:|:-:|
-| ![Screenshot 1](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.19_8fb323be.jpg) | ![Screenshot 2](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.20_6239aeb7.jpg) | ![Screenshot 3](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.20_889557e7.jpg) | ![Screenshot 4](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.20_bc954f93.jpg) |
-| ![Screenshot 5](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.21_30bec8c3.jpg) | ![Screenshot 6](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.21_8d3056d6.jpg) | ![Screenshot 7](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.21_d7da7e86.jpg) | ![Screenshot 8](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.21_ee625210.jpg) |
-| ![Screenshot 9](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.22_4d47dfc9.jpg) | ![Screenshot 10](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.22_9540bf90.jpg) | ![Screenshot 11](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.22_98e515de.jpg) | ![Screenshot 12](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.22_ae60ed3c.jpg) |
+|                                                                                          |                                                                                          |                                                                                          |                                                                                          |
+| :--------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: |
+| ![Screenshot 1](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.19_8fb323be.jpg)  | ![Screenshot 2](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.20_6239aeb7.jpg)  | ![Screenshot 3](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.20_889557e7.jpg)  | ![Screenshot 4](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.20_bc954f93.jpg)  |
+| ![Screenshot 5](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.21_30bec8c3.jpg)  | ![Screenshot 6](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.21_8d3056d6.jpg)  | ![Screenshot 7](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.21_d7da7e86.jpg)  | ![Screenshot 8](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.21_ee625210.jpg)  |
+| ![Screenshot 9](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.22_4d47dfc9.jpg)  | ![Screenshot 10](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.22_9540bf90.jpg) | ![Screenshot 11](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.22_98e515de.jpg) | ![Screenshot 12](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.22_ae60ed3c.jpg) |
 | ![Screenshot 13](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.23_651e77df.jpg) | ![Screenshot 14](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.23_7a9859d8.jpg) | ![Screenshot 15](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.23_abd18b5c.jpg) | ![Screenshot 16](screenshots/WhatsApp%20Image%202025-11-08%20at%2023.09.24_3b011dc4.jpg) |
 
-*Click on any screenshot to view it larger*
+_Click on any screenshot to view it larger_
 
 ## 🤝 Contributing
 
