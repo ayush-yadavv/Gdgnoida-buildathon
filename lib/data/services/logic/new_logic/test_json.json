@@ -1,0 +1,195 @@
+{
+  "meal_analysis": { 
+    "status": "Success | Partial Success | Failure", // Analysis quality status
+    "error_message": "String | null", // Reason for non-success, null if Success
+    "analysis_confidence": 0.0-1.0, // Overall meal analysis confidence
+	
+
+    "meal_details": { 
+       "name_suggestion": "String" // Suggested meal name (e.g., "Chicken Salad Lunch")
+         "meal_type": "Vegan | Vegetarian | Pescatarian | Non-Vegetarian | Unknown",
+      "cuisine_style": "String | null",
+      "estimated_total_weight": {"value": Number, "unit": "g"}
+    },
+
+    "items": [ // Identified distinct food items
+      {
+        "item_name": "String", // Name of this specific item (e.g., "Grilled Chicken Breast")
+          "item_category": "Main Protein | Grain/Starch | Vegetable | Fruit | Dairy | Sauce/Condiment | Beverage | Dessert | Mixed Dish | Other",
+        "preparation_method": "Raw | Grilled | Baked | Fried | Steamed | Boiled | Unknown",
+
+        "estimated_quantity": { // Estimated quantity of this item
+          "amount": Number, // Numeric quantity value
+          "unit": "String" // Quantity unit (e.g., "g", "ml")
+          "visual_estimation_method": "String" | null
+        },
+
+        // **Nutrients for the ESTIMATED quantity, categorized:**
+        "nutrients_for_estimated_quantity": {
+          "macro_nutrients": { // **MANDATORY** object containing the 5 core macronutrients (Calories, Protein, Fat, Carbohydrates, Fiber).  May include additional macronutrients.
+             "Calories": {"value": 0, "unit": "kcal"}, // Estimated energy for portion
+             "Protein": {"value": 0, "unit": "g"}, 
+             "Fat": {"value": 0, "unit": "g"},
+             "Carbohydrates": {"value": 0, "unit": "g"}, 
+             "Fiber": {"value": 0, "unit": "g"} 
+            // Example: "Sugar": {"value": 5, "unit": "g"}, ...
+          },
+          "micro_nutrients": { // Object containing OTHER estimated nutrients (vitamins, minerals, sodium, sugars etc.)
+             // Example: "Sodium": {"value": 300, "unit": "mg"}, "Vitamin C": {"value": 15, "unit": "mg"}, ...
+             // Include only nutrients the AI can reasonably estimate. Empty object if none.
+          }
+        },
+
+      
+         "nutrients_per_100g": {
+         "macro_nutrients": {/* Same structure as above */},
+          "micro_nutrients": {/* Same structure as above */}
+        },
+        "possible_allergens": ["String"] | null, // Inferred allergens (e.g., ["Dairy"])
+        "dietary_flags": ["High Protein", "Low Fat", "Gluten Free", "High Fiber"] | null,
+        "estimation_details": { // Analysis metadata for this item
+            "visual_cues": ["String"] | null, // Cues used (if image)
+            "reasoning": "String | null", // Estimation logic explanation
+            "confidence": 0.0-1.0 // Confidence for THIS item
+        }
+      }
+    ],
+
+"total_meal_nutrients": {
+      "macro_nutrients": {/* Same structure as above */},
+      "micro_nutrients": {/* Same structure as above */}
+    },
+}
+
+Rules & Considerations:
+1. Output ONLY the valid JSON object requested. No extra text or markdown.
+2. Provide nutrients both per 100g and for estimated total quantity
+3. Ensure all strings within the JSON are properly escaped.
+4. Use visual cues to estimate portions (size relative to plate, height of food, etc.)
+5. Base estimations on standard databases (e.g., USDA).
+6. Consider common serving sizes and preparation methods.
+7. The `macro_nutrients` objects/lists within nutrient sections MUST contain entries/keys for 'Calories', 'Protein', 'Fat', 'Carbohydrates', 'Fiber'. Use `null`/`0` for `value` if missing/zero.
+8. The `micro_nutrients` objects/lists should contain all other estimated/detected nutrients. They can be empty.
+9. Use consistent nutrient names (e.g., "Fat", "Carbohydrates").
+
+Analyze the product using front & label images. Respond strictly with this JSON (descriptions in comments):
+{
+  "product_analysis": {
+    "status": "Success | Partial Success | Failure", // Analysis quality status
+    "error_message": "String | null", // Reason for non-success, null if Success
+    "image_quality": {
+      "front_image": "High | Medium | Low | Missing", // Front image clarity
+      "label_image": "High | Medium | Low | Missing" // Label image clarity
+    },
+    "analysis_confidence": 0.0-1.0, // Overall analysis confidence
+
+    "product_details": {
+      "name": "String | null", // Full product name
+      "brand": "String | null", // Brand name
+      "variant": "String | null", // Flavor/type variant
+      "category_guess": "String | null", // Guessed category (e.g., "Snack", "Beverage")
+     
+      "packaging_size": "String | null" // Package size text (e.g., "16 oz", "1 L")
+    },
+
+    "nutrition_label": {
+      "serving_size": {
+        "value": Number | null, // Numeric serving value
+        "unit": "String | null", // Serving unit (e.g., "g", "cup")
+        "text_description": "String | null" // Raw serving text (e.g., "1 cup (240g)")
+      },
+      "servings_per_container": Number | null, // Number of servings per container
+      
+      "macro_nutrients": [
+        // Core macronutrients with consistent formatting
+        // Include these even if missing from label (use 0)
+        {"name": "Calories", "value": Number | 0, "unit": "kcal"},
+        {"name": "Total Fat", "value": Number | 0, "unit": "g"},
+        {"name": "Total Carbohydrate", "value": Number | 0, "unit": "g"},
+        {"name": "Dietary Fiber", "value": Number | 0, "unit": "g"},
+        {"name": "Protein", "value": Number | 0, "unit": "g"}
+      ],
+      
+      "micro_nutrients": [
+        // All other nutrients found on label (vitamins, minerals, sodium, sugars, etc.)
+        // Example format: {"name": "Sodium", "value": 150, "unit": "mg", "daily_value_percent": 7}
+        // Include ONLY nutrients explicitly listed on the label besides the 5 macros
+      ],
+      
+      "allergens": {
+        "declared_text": "String | null", // Raw allergen text (e.g., "Contains: Wheat, Milk")
+        "detected_allergens": ["String"] // List of specific allergens identified
+      },
+      
+      "ingredients_list": "String | null", // Full ingredients list text
+      "country_of_origin": "String | null", // Origin country if listed
+      "label_format": "US | EU | UK | Canada | Australia | Other | Unknown" // Identified label format
+    },
+
+    "health_assessment": {
+      "nutrition_quality_score": Number | null, // Optional 0-100 score
+      "notable_nutrients": [
+        // Nutrients with unusually high/low values
+        {"nutrient": "String", "level": "High | Low", "context": "String"}
+      ],
+      "dietary_considerations": [
+        // Relevant dietary information
+        {"diet_type": "String", "suitability": "Suitable | May Contain | Not Suitable", "reason": "String"}
+      ]
+    }
+  }
+}
+
+Rules:
+1. Output ONLY the valid JSON object requested. No extra text, explanations, or markdown.
+2. The `macro_nutrients` list MUST include all 5 core nutrients. Use `null` for values not found on the label.
+3. The `micro_nutrients` list should contain only nutrients explicitly found on the label.
+4. Use appropriate units based on the label (g, mg, mcg, kcal, IU, etc.) and maintain numeric precision.
+5. If information cannot be confidently determined, use null rather than guessing.
+6. For international labels, adapt field values appropriately while maintaining the structure.
+7. Fill the `health_assessment` section only if confident in nutritional analysis.
+8. Ensure all string values are properly escaped for valid JSON.
+
+  {
+    "product_analysis": { // Overall product analysis
+      "status": "Success | Partial Success | Failure", // Analysis quality status
+      "error_message": "String | null", // Reason for non-success, null if Success
+      "label_clarity": "High | Medium | Low | Obscured", // Label image clarity
+      "analysis_confidence": 0.0-1.0, // Overall analysis confidence
+
+      "product_details": { // Product info (front image/label header)
+        "name": "String | null", // Product name
+        "brand": "String | null", // Brand name
+        "category_guess": "String | null", // Guessed category (e.g., "Snack")
+        "barcode": "String | null" // Detected UPC/EAN
+      },
+
+      "nutrition_label": { // Extracted from nutrition facts label
+        "serving_size": { // Label's serving size
+          "value": Number | null, // Numeric serving value
+          "unit": "String | null", // Serving unit (e.g., "g", "cup")
+          "text_description": "String | null" // Raw serving text (e.g., "1 cup (240g)")
+        },
+        // **Nutrients per serving, categorized:**
+        "macro_nutrients_per_serving": [ // **MANDATORY** list containing ONLY the 5 core macronutrients
+          // MUST include entries for: "Calories", "Total Fat", "Total Carbohydrate", "Protein", "Dietary Fiber"
+          // Example: {"name":"Calories", "value":100, "unit":"kcal", "daily_value_percent":5}, ...
+        ],
+        "micro_nutrients_per_serving": [ // List of OTHER nutrients found on the label (vitamins, minerals, sodium, sugars etc.)
+          // Example: {"name":"Sodium", "value":150, "unit":"mg", "daily_value_percent":7}, {"name":"Vitamin D", "value":2, "unit":"mcg", "daily_value_percent":10}, ...
+          // Include ONLY nutrients explicitly listed on the label besides the 5 macros. Empty list if none.
+        ],
+        "allergens_text": "String | null", // Raw allergen text (e.g., "Contains Wheat")
+        "ingredients_text": "String | null" // Raw ingredients list text
+      },
+
+      "health_assessment": { // (Optional) Nutritional interpretation
+        "primary_concerns": [ // High 'bad' or low 'good' nutrients
+          {"nutrient_name": "String", "issue": "String", "explanation": "String"}
+        ],
+        "recommendations": [ // Complementary food suggestions
+           {"food": "String", "quantity": "String", "reasoning": "String"}
+        ]
+      }
+    }
+  }

@@ -1,0 +1,154 @@
+// """
+You are a nutrition expert. Analyze the food image. Break down the meal into items & estimate nutrition. Respond strictly with this JSON (descriptions in comments):
+
+{
+  "meal_analysis": {
+    "status": "Success | Partial Success | Failure", 
+    "error_message": "String | null", // Reason for non-success, null if Success
+    "analysis_confidence": 0.0-1.0,
+    "meal_details": { 
+        "name_suggestion": "String" ,// Suggested meal name (e.g., "Chicken Salad Lunch")
+        "meal_type": "Vegan | Vegetarian | Pescatarian | Non-Vegetarian | Unknown",
+        "cuisine_style": "String | null",
+        "estimated_total_weight": {"value": Number, "unit": "g"}
+    },
+
+    "items": [ // Identified distinct food items
+      {
+        "item_name": "String", // Name of this specific item (e.g., "Grilled Chicken Breast")
+          "item_category": "Main Protein | Grain/Starch | Vegetable | Fruit | Dairy | Sauce/Condiment | Beverage | Dessert | Mixed Dish | Other",
+        "preparation_method": "Raw | Grilled | Baked | Fried | Steamed | Boiled | Unknown",
+
+        "estimated_quantity": { // Estimated quantity of this item
+          "amount": Number, // Numeric quantity value
+          "unit": "String", // Quantity unit (e.g., "g", "ml")
+          "visual_estimation_method": "String" | null
+        },
+
+        // **Nutrients for the ESTIMATED quantity, categorized:**
+        "nutrients_for_estimated_quantity": {
+          "macro_nutrients": { // **MANDATORY** object containing the 5 core macronutrients (Calories, Protein, Fat, Carbohydrates, Fiber).  May include additional macronutrients.
+             "Calories": {"value": 0, "unit": "kcal"}, // Estimated energy for portion
+             "Protein": {"value": 0, "unit": "g"}, 
+             "Fat": {"value": 0, "unit": "g"},
+             "Carbohydrates": {"value": 0, "unit": "g"}, 
+             "Fiber": {"value": 0, "unit": "g"} 
+            // Example: "Sugar": {"value": 5, "unit": "g"}, ...
+          },
+          "micro_nutrients": { // Object containing OTHER estimated nutrients (vitamins, minerals, sodium, sugars etc.)
+             // Example: "Sodium": {"value": 300, "unit": "mg"}, "Vitamin C": {"value": 15, "unit": "mg"}, ...
+             // Include only nutrients the AI can reasonably estimate. Empty object if none.
+          }
+        },
+
+      
+         "nutrients_per_100g": {
+         "macro_nutrients": {/* Same structure as above */},
+          "micro_nutrients": {/* Same structure as above */}
+        },
+        "possible_allergens": ["String"] | null, // Inferred allergens (e.g., ["Dairy"])
+        "dietary_flags": ["High Protein", "Low Fat", "Gluten Free", "High Fiber"] | null,
+        "estimation_details": { // Analysis metadata for this item
+            "visual_cues": ["String"] | null, // Cues used (if image)
+            "reasoning": "String | null", // Estimation logic explanation
+            "confidence": 0.0-1.0 // Confidence for THIS item
+        }
+      }
+    ],
+
+"total_meal_nutrients": {
+      "macro_nutrients": {/* Same structure as above */},
+      "micro_nutrients": {/* Same structure as above */}
+    }
+}
+} 
+
+
+Rules & Considerations:
+1. Output ONLY the valid JSON object requested. No extra text or markdown.
+2. Provide nutrients both per 100g and for estimated total quantity
+3. Ensure all strings within the JSON are properly escaped.
+4. Use visual cues to estimate portions (size relative to plate, height of food, etc.)
+5. Base estimations on standard databases (e.g., USDA).
+6. Consider common serving sizes and preparation methods.
+7. The `macro_nutrients` objects/lists within nutrient sections MUST contain entries/keys for 'Calories', 'Protein', 'Fat', 'Carbohydrates', 'Fiber'. Use `null`/`0` for `value` if missing/zero.
+8. The `micro_nutrients` objects/lists should contain all other estimated/detected nutrients. They can be empty.
+9. Use consistent nutrient names (e.g., "Fat", "Carbohydrates").
+
+
+// """
+
+
+{    // meal analysis
+    "status": "Success | Partial Success | Failure", 
+    "error_message": "String | null", // Reason for non-success, null if Success
+    "analysis_confidence": 0.0-1.0,
+    "meal_details": { 
+        "name_suggestion": "String" ,// Suggested meal name (e.g., "Chicken Salad Lunch")
+        "meal_type": "Vegan | Vegetarian | Pescatarian | Non-Vegetarian | Unknown",
+        "cuisine_style": "String | null",
+        "estimated_total_weight": {"value": Number, "unit": "g"}
+    },
+    "items": [ // Identified distinct food items
+      {
+        "item_name": "String", // Name of this specific item (e.g., "Grilled Chicken Breast")
+          "item_category": "Main Protein | Grain/Starch | Vegetable | Fruit | Dairy | Sauce/Condiment | Beverage | Dessert | Mixed Dish | Other",
+        "preparation_method": "Raw | Grilled | Baked | Fried | Steamed | Boiled | Unknown",
+        "estimated_quantity": { // Estimated quantity of this item
+          "amount": Number, // Numeric quantity value
+          "unit": "String", // Quantity unit (e.g., "g", "ml")
+          "visual_estimation_method": "String" | null
+        },
+        // **Nutrients for the ESTIMATED quantity, categorized:**
+        "nutrients_for_estimated_quantity": {
+          "macro_nutrients": { // **MANDATORY** object containing the 5 core macronutrients (Calories, Protein, Fat, Carbohydrates, Fiber).  May include additional macronutrients.
+             "Calories": {"value": 0, "unit": "kcal"}, // Estimated energy for portion
+             "Protein": {"value": 0, "unit": "g"}, 
+             "Fat": {"value": 0, "unit": "g"},
+             "Carbohydrates": {"value": 0, "unit": "g"}, 
+             "Fiber": {"value": 0, "unit": "g"} 
+            // Example: "Sugar": {"value": 5, "unit": "g"}, ...
+          },
+          "micro_nutrients": { // Object containing OTHER estimated nutrients (vitamins, minerals, sodium, sugars etc.)
+             // Example: "Sodium": {"value": 300, "unit": "mg"}, "Vitamin C": {"value": 15, "unit": "mg"}, ...
+             // Include only nutrients the AI can reasonably estimate. Empty object if none.
+          }
+        },
+         "nutrients_per_100g": {
+         "macro_nutrients": {/* Same structure as above */},
+          "micro_nutrients": {/* Same structure as above */}
+        },
+        "possible_allergens": ["String"] | null, // Inferred allergens (e.g., ["Dairy"])
+        "dietary_flags": ["High Protein", "Low Fat", "Gluten Free", "High Fiber"] | null,
+        "estimation_details": { // Analysis metadata for this item
+            "visual_cues": ["String"] | null, // Cues used (if image)
+            "reasoning": "String | null", // Estimation logic explanation
+            "confidence": 0.0-1.0 // Confidence for THIS item
+        }
+      }
+    ],
+    "total_meal_nutrients": {
+      "macro_nutrients": {/* Same structure as above */},
+      "micro_nutrients": {/* Same structure as above */}
+    },
+    "health_assessment": {
+      "nutrition_quality_score": Number,
+      "primary_concerns": [
+        {
+            "issue": "Primary nutritional concern",
+            "explanation": "Brief explanation of health impact",
+          "recommendations": [
+            {
+              "food": "Complementary food suitable to add to this product, consider product name for determining suitability for complementary food additions",
+              "quantity": "Recommended quantity to add",
+              "reasoning": "How this addition helps balance the nutrition (e.g., slows sugar absorption, adds fiber, reduces glycemic index)"
+            }
+          ]
+        }
+      ],
+      "dietary_considerations": [
+        // Relevant dietary information
+        {"diet_type": "String", "suitability": "Suitable | May Contain | Not Suitable", "reason": "String"}
+      ]
+    }
+}

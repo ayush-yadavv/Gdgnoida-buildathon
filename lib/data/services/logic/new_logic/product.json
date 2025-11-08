@@ -1,0 +1,202 @@
+
+Analyze the product using front & label images. Respond strictly with this JSON (descriptions in comments):
+{
+  "product_analysis": {
+    "status": "Success | Partial Success | Failure",
+    "error_message": "String | null", // Reason for non-success, null if Success
+    "image_quality": { // clarity of imagges
+      "front_image": "High | Medium | Low | Missing", 
+      "label_image": "High | Medium | Low | Missing" 
+    },
+    "analysis_confidence": 0.0-1.0, 
+
+    "product_details": { // Product info (front image/label header)
+      "fullname": "String", 
+      "brandname": "String | null",
+      "variant": "String | null", // Flavor/type variant
+      "category_guess": "String | null", // Guessed category (e.g., "Snack", "Beverage")
+      "packaging_size":  {"value": Number, "unit": "g"} // Package size (e.g., {"value": 1, "unit": "L"})
+    },
+    "nutrition_label": {
+      "serving_size": {
+        "value": Number | null, // Numeric serving value
+        "unit": "String | null", // Serving unit (e.g., "g", "cup")
+        "text_description": "String | null" // Raw serving text (e.g., "1 cup (240g)")
+      },
+      "servings_per_container": Number | null, // Number of servings per container
+      "macro_nutrients": [
+        // Core macronutrients with consistent formatting
+        // Include these 5 even if missing from label (use 0 value)
+        {"name": "Calories", "value": Number | 0, "unit": "kcal", "health_impact": "Good | Bad | Moderate"},
+        {"name": "Total Fat", "value": Number | 0, "unit": "g", "health_impact": "Good | Bad | Moderate"},
+        {"name": "Total Carbohydrate", "value": Number | 0, "unit": "g", "health_impact": "Good | Bad | Moderate"},
+        {"name": "Dietary Fiber", "value": Number | 0, "unit": "g", "health_impact": "Good | Bad | Moderate"},
+        {"name": "Protein", "value": Number | 0, "unit": "g", "health_impact": "Good | Bad | Moderate"}
+        // Include ONLY macro nutrients explicitly listed on the label besides the 5 macros
+      ],
+      
+      "micro_nutrients": [
+        // All other nutrients found on label (vitamins, minerals, sodium, etc.)
+        // Example format: {"name": "Sodium", "value": 150, "unit": "mg", "health_impact": "Good | Bad | Moderate"}
+        // Include ONLY micro nutrients explicitly listed on the label besides the macros
+      ],
+      
+      "allergens": {
+          "detected_allergens": ["String"] | null // List of specific allergens if identified
+        "declared_text": "String | null", // Raw allergen text (e.g., "Contains: Wheat, Milk")
+      },
+      
+      "ingredients_list": ["String"] | null, // Full ingredients list text
+      "country_of_origin": "String | null", // Origin country if listed
+      "label_format": "US | EU | UK | Canada | Australia | Other | Unknown" // Identified label format
+    },
+
+    "health_assessment": {
+      "nutrition_quality_score": Number,
+    "primary_concerns": [
+        {
+            "issue": "Primary nutritional concern",
+            "explanation": "Brief explanation of health impact",
+          "recommendations": [
+            {
+              "food": "Complementary food suitable to add to this product, consider product name for determining suitability for complementary food additions",
+              "quantity": "Recommended quantity to add",
+              "reasoning": "How this addition helps balance the nutrition (e.g., slows sugar absorption, adds fiber, reduces glycemic index)"
+            }
+          ]
+        }
+      ],
+      "dietary_considerations": [
+        // Relevant dietary information
+        {"diet_type": "String", "suitability": "Suitable | May Contain | Not Suitable", "reason": "String"}
+      ]
+    }
+  }
+}
+Strictly follow these rules:
+1. Output ONLY the valid JSON object described, with no additional text, explanations, or markdown formatting.
+2. The macro_nutrients list MUST include all 5 core nutrients (Calories, Total Fat, Total Carbohydrate, Dietary Fiber, Protein). Use 0 for values not found on the label.
+3. Include in micro_nutrients only nutrients explicitly found on the label besides the core macros.
+4. Use appropriate units as shown on the label (g, mg, mcg, kcal, IU, etc.) and maintain numeric precision.
+5. Use null for information that cannot be confidently determined rather than guessing.
+6. Ensure proper JSON formatting with escaped special characters and no extra characters outside the object.
+7. For health_assessment:
+   - Complete this section only if confident in the nutritional analysis
+   - Focus on major nutritional imbalances in primary_concerns
+   - For recommendations, suggest practical food additions that complement the product with specific quantities
+   - Explain how each addition helps balance nutrition (e.g., adds fiber, reduces glycemic index)
+   - Consider product context and common food pairings
+8. For health_impact determination:
+   For "At least" nutrients (like fiber, protein):
+   High status → Good health_impact
+   Moderate status → Moderate health_impact
+   Low status → Bad health_impact
+   For "Less than" nutrients (like sodium, saturated fat):
+   Low status → Good health_impact
+   Moderate status → Moderate health_impact
+   High status → Bad health_impact
+9. Adapt international label information appropriately while maintaining the structure.
+
+
+
+
+1. Output ONLY the valid JSON object requested. No extra (text, explanations, or markdown).
+2. The `macro_nutrients` list MUST include all 5 core nutrients. Use `0` for values not found on the label.
+3. The `micro_nutrients` list should contain only nutrients explicitly found on the label other than macros.
+4. Use appropriate units based on the label (g, mg, mcg, kcal, IU, etc.) and maintain numeric precision.
+5. If information cannot be confidently determined, use null rather than guessing.
+6. For international labels, adapt field values appropriately while maintaining the structure.
+7. Fill the `health_assessment` section only if confident in nutritional analysis.
+8. Ensure all string values are properly escaped for valid JSON.
+2. Do not include any extra characters or formatting outside of the JSON object
+3. Use accurate escape sequences for any special characters
+4. Avoid including nutrients that aren't mentioned in the label
+5. For primary_concerns, focus on major nutritional imbalances
+6. For recommendations:
+   - Suggest foods that can be added to or consumed with the product to improve its nutritional balance
+   - Focus on practical additions that complement the main product
+   - Explain how each addition helps balance the nutrition (e.g., adding fiber to slow sugar absorption)
+   - Consider cultural context and common food pairings
+   - Provide specific quantities for the recommended additions
+
+8. For health_impact determination:
+   For "At least" nutrients (like fiber, protein):
+   High status → Good health_impact
+   Moderate status → Moderate health_impact
+   Low status → Bad health_impact
+   For "Less than" nutrients (like sodium, saturated fat):
+   Low status → Good health_impact
+   Moderate status → Moderate health_impact
+   High status → Bad health_impact
+
+
+{
+    // product analysis
+    "status": "Success | Partial Success | Failure",
+    "error_message": "String | null", // Reason for non-success, null if Success
+    "image_quality": { // clarity of imagges
+      "front_image": "High | Medium | Low | Missing", 
+      "label_image": "High | Medium | Low | Missing" 
+    },
+    "analysis_confidence": 0.0-1.0, 
+
+    "product_details": { // Product info (front image/label header)
+      "fullname": "String", 
+      "brandname": "String | null",
+      "variant": "String | null", // Flavor/type variant
+      "category_guess": "String | null", // Guessed category (e.g., "Snack", "Beverage")
+      "packaging_size":  {"value": Number, "unit": "g"} // Package size (e.g., {"value": 1, "unit": "L"})
+    },
+    "nutrition_label": {
+      "serving_size": {
+        "value": Number | null, // Numeric serving value
+        "unit": "String | null", // Serving unit (e.g., "g", "cup")
+        "text_description": "String | null" // Raw serving text (e.g., "1 cup (240g)")
+      },
+      "servings_per_container": Number | null, // Number of servings per container considering the packing size
+      "macro_nutrients": [
+        // Core macronutrients with consistent formatting
+        // Include these 5 even if missing from label (use 0 value)
+        {"name": "Calories", "value": Number | 0, "unit": "kcal", "health_impact": "Good | Bad | Moderate"},
+        {"name": "Total Fat", "value": Number | 0, "unit": "g", "health_impact": "Good | Bad | Moderate"},
+        {"name": "Total Carbohydrate", "value": Number | 0, "unit": "g", "health_impact": "Good | Bad | Moderate"},
+        {"name": "Dietary Fiber", "value": Number | 0, "unit": "g", "health_impact": "Good | Bad | Moderate"},
+        {"name": "Protein", "value": Number | 0, "unit": "g", "health_impact": "Good | Bad | Moderate"}
+        // Include ONLY macro nutrients explicitly listed on the label besides the 5 macros
+      ],
+      
+      "micro_nutrients": [
+        // All other nutrients found on label (vitamins, minerals, sodium, etc.)
+        // Example format: {"name": "Sodium", "value": 150, "unit": "mg", "health_impact": "Good | Bad | Moderate"}
+        // Include ONLY micro nutrients explicitly listed on the label besides the macros
+      ],
+      
+      "possible_allergens": ["String"] | null, // Inferred allergens (e.g., ["Dairy"])
+      "dietary_flags": ["High Protein", "Low Fat", "Gluten Free", "High Fiber"] | null,
+        
+      "ingredients_list": ["String"] | null, // Full ingredients list text
+      "country_of_origin": "String | null", // Origin country if listed
+      "label_format": "US | EU | UK | Canada | Australia | Other | Unknown" // Identified label format
+    },
+
+    "health_assessment": {
+      "nutrition_quality_score": Number,
+      "primary_concerns": [
+        {
+            "issue": "Primary nutritional concern",
+            "explanation": "Brief explanation of health impact",
+          "recommendations": [
+            {
+              "food": "Complementary food suitable to add to this product, consider product name for determining suitability for complementary food additions",
+              "quantity": "Recommended quantity to add",
+              "reasoning": "How this addition helps balance the nutrition (e.g., slows sugar absorption, adds fiber, reduces glycemic index)"
+            }
+          ]
+        }
+      ],
+      "dietary_considerations": [
+        // Relevant dietary information
+        {"diet_type": "String", "suitability": "Suitable | May Contain | Not Suitable", "reason": "String"}
+      ]
+    }
+  }
