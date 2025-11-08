@@ -156,14 +156,7 @@ _(Note: The `lib/temp/` directory seems to contain work-in-progress or temporary
 
 ## 🎥 Demo Video
 
-Here's a quick demo of eat_right in action:
-
-<div style="margin: 20px 0; text-align: center;">
-  <video width="80%" controls style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-    <source src="screenshots/WhatsApp Video 2025-11-08 at 23.34.32_341b3a18.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-</div>
+Here's a quick demo of eat_right in action: [Watch on YouTube](https://youtu.be/MDwYYW6DeX8)
 
 ## 📸 Screenshots
 
