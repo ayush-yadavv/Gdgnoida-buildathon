@@ -2,6 +2,26 @@ import 'package:eat_right/data/services/logic/new_data_model/daily_intake_model.
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+// Helper function to get month abbreviation
+String _getMonthAbbreviation(int month) {
+  const months = [
+    '',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  return months[month];
+}
+
 class CaloriesChart extends StatelessWidget {
   final Map<DateTime, DailyIntakeModel> dailyIntakes;
 
@@ -106,16 +126,33 @@ class CaloriesChart extends StatelessWidget {
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: 24,
+                    reservedSize: 32, // Increased to fit two lines
+                    interval: 1, // Ensure every point gets a label
                     getTitlesWidget: (value, meta) {
                       if (value >= 0 && value < data.length) {
+                        final date = data[value.toInt()].key;
+                        // Show day and abbreviated month (e.g., '2 Nov')
+                        final month = _getMonthAbbreviation(date.month);
                         return Padding(
-                          padding: const EdgeInsets.only(top: 6.0),
-                          child: Text(
-                            '${data[value.toInt()].key.day}',
-                            style: textTheme.bodySmall?.copyWith(
-                              color: theme.hintColor,
-                            ),
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${date.day}',
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: theme.hintColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                month,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: theme.hintColor.withOpacity(0.7),
+                                  fontSize: 9,
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       }
@@ -180,13 +217,13 @@ class CaloriesChart extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        Center(
-          child: Text(
-            'Last ${data.length} days',
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-        ),
+        // const SizedBox(height: 8),
+        // Center(
+        //   child: Text(
+        //     'Last ${data.length} days',
+        //     style: const TextStyle(fontSize: 12, color: Colors.grey),
+        //   ),
+        // ),
       ],
     );
   }
