@@ -7,6 +7,7 @@ import 'package:eat_right/temp/nutrient_insights.dart';
 import 'package:eat_right/temp/screens/detailed_day_view/detailed_day_view_page.dart';
 import 'package:eat_right/temp/screens/scan_label_controller.dart'; // Controller for this page
 import 'package:eat_right/temp/widgets/ask_ai_widget.dart';
+// import 'package:eat_right/data/services/logic/new_data_model/food_consumption_models/nutrients_data_models/nutrient_detail.dart';
 import 'package:eat_right/temp/widgets/nutrient_balance_card.dart';
 import 'package:eat_right/temp/widgets/nutrient_info_shimmer.dart';
 import 'package:eat_right/temp/widgets/nutrient_tile.dart';
@@ -81,14 +82,7 @@ class ScanLabelPage extends StatelessWidget {
           SizedBox(width: Sizes.defaultSpace / 2),
         ],
       ),
-      body: Obx(
-        () => // Body reacts to logging state
-            controller
-                .isLoggingConsumption
-                .value // Use controller's getter
-            ? _buildLoggingOverlay(context)
-            : _buildMainContent(context, controller),
-      ),
+      body: _buildMainContent(context, controller),
       floatingActionButton: Obx(
         () => // FAB reacts to scanning step and analysis status
             controller.scanningStep.value == 3 &&
@@ -107,28 +101,6 @@ class ScanLabelPage extends StatelessWidget {
     );
   }
 
-  // --- Logging Overlay ---
-  Widget _buildLoggingOverlay(BuildContext context) {
-    return Container(
-      color: Colors.black.withOpacity(0.6), // Slightly darker overlay
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-            SizedBox(height: Sizes.m), // Use Sizes constant
-            Text(
-              "Logging Consumption...",
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // --- Main Content Area ---
   Widget _buildMainContent(
     BuildContext context,
@@ -137,36 +109,27 @@ class ScanLabelPage extends StatelessWidget {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(), // Nice scroll physics
       child: Obx(
-        () => Padding(
-          // Adjust bottom padding based on FAB visibility for better spacing
-          padding: EdgeInsets.only(
-            left: Sizes.defaultSpace,
-            right: Sizes.defaultSpace,
-            // top: Sizes.s,
-          ),
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.center, // Center items like cards
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Show progress indicator when analyzing
-              if (controller.isAnalyzingProduct.value)
-                const LinearProgressIndicator(),
+        () => Column(
+          crossAxisAlignment:
+              CrossAxisAlignment.center, // Center items like cards
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Show progress indicator when analyzing
+            if (controller.isAnalyzingProduct.value)
+              const LinearProgressIndicator(),
 
-              // Image previews (shown when images are available)
-              _buildImagePreviewSection(context, controller),
+            // Step-by-step instruction cards
+            _buildScanningStepsUI(context, controller),
+            // Image previews (shown when images are available)
+            _buildImagePreviewSection(context, controller),
 
-              // Step-by-step instruction cards
-              _buildScanningStepsUI(context, controller),
+            // Analysis results, loading indicator, or error message
+            _buildAnalysisSection(context, controller),
 
-              // Analysis results, loading indicator, or error message
-              _buildAnalysisSection(context, controller),
-
-              // Add extra space at the bottom if analysis is complete for scrolling
-              // if (controller.scanningStep.value == 3)
-              const SizedBox(height: Sizes.spaceBtwSections),
-            ],
-          ),
+            // Add extra space at the bottom if analysis is complete for scrolling
+            // if (controller.scanningStep.value == 3)
+            const SizedBox(height: 100),
+          ],
         ),
       ),
     );
@@ -219,7 +182,7 @@ class ScanLabelPage extends StatelessWidget {
 
     switch (stepNumber) {
       case 1: // Scan Product Front
-        title = "Step 1: Scan Product Front";
+        title = "Scan Product Front";
         instruction = "Take or select a clear picture of the product's front.";
         icon = Iconsax.camera_copy;
         iconColor = Theme.of(context).primaryColor;
@@ -229,7 +192,7 @@ class ScanLabelPage extends StatelessWidget {
         );
         break;
       case 2: // Scan Label
-        title = "Step 2: Scan Nutrition Label";
+        title = "Scan Nutrition Label";
         instruction = "Take or select a clear picture of the nutrition facts.";
         icon = Iconsax.scanner_copy;
         iconColor = Theme.of(context).primaryColor;
@@ -272,6 +235,10 @@ class ScanLabelPage extends StatelessWidget {
     }
 
     return Card(
+      margin: const EdgeInsets.symmetric(
+        vertical: Sizes.s,
+        horizontal: Sizes.defaultSpace,
+      ),
       elevation: 0,
       clipBehavior: Clip.antiAlias,
       child: Container(
@@ -325,6 +292,51 @@ class ScanLabelPage extends StatelessWidget {
     );
   }
 
+  // Shows a dialog to choose image source (camera or gallery)
+  void _showImageSourceDialog(
+    BuildContext context, {
+    required bool isFrontImage,
+    required ScanLabelPageController controller,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const SizedBox(height: 8),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take Photo'),
+                onTap: () {
+                  Navigator.pop(context);
+                  if (isFrontImage) {
+                    controller.captureFoodImage(ImageSource.camera);
+                  } else {
+                    controller.captureLabelImage(ImageSource.camera);
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  if (isFrontImage) {
+                    controller.captureFoodImage(ImageSource.gallery);
+                  } else {
+                    controller.captureLabelImage(ImageSource.gallery);
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   // Builds the section displaying the captured image previews
   Widget _buildImagePreviewSection(
     BuildContext context,
@@ -340,7 +352,10 @@ class ScanLabelPage extends StatelessWidget {
       }
 
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: Sizes.s),
+        padding: const EdgeInsets.symmetric(
+          vertical: Sizes.s,
+          horizontal: Sizes.defaultSpace,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -354,10 +369,11 @@ class ScanLabelPage extends StatelessWidget {
                     title: "Product",
                     imageFile: frontImg,
                     isFrontImage: true,
-                    onRetake: () =>
-                        controller.captureFoodImage(ImageSource.camera),
-                    onDelete: () =>
-                        controller.imageController.clearFrontImage(),
+                    onRetake: () => _showImageSourceDialog(
+                      context,
+                      isFrontImage: true,
+                      controller: controller,
+                    ),
                   ),
                   const SizedBox(height: Sizes.m),
                 ],
@@ -372,49 +388,50 @@ class ScanLabelPage extends StatelessWidget {
                     title: "Nutrition Label",
                     imageFile: labelImg,
                     isFrontImage: false,
-                    onRetake: () =>
-                        controller.captureLabelImage(ImageSource.camera),
-                    onDelete: () =>
-                        controller.imageController.clearLabelImage(),
+                    onRetake: () => _showImageSourceDialog(
+                      context,
+                      isFrontImage: false,
+                      controller: controller,
+                    ),
                   ),
                   const SizedBox(height: Sizes.m),
                 ],
               ),
 
             // Add Image Button (if any image is missing)
-            if (frontImg == null || labelImg == null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: Sizes.s),
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    if (frontImg == null) {
-                      controller.captureFoodImage(ImageSource.camera);
-                    } else if (labelImg == null) {
-                      controller.captureLabelImage(ImageSource.camera);
-                    }
-                  },
-                  icon: const Icon(Icons.add_photo_alternate_outlined),
-                  label: Text(
-                    frontImg == null
-                        ? 'Add Product Front Image'
-                        : 'Add Nutrition Label Image',
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Theme.of(context).primaryColor,
-                    side: BorderSide(
-                      color: Theme.of(context).primaryColor.withOpacity(0.5),
-                      width: 1,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(Sizes.buttonRadius),
-                    ),
-                  ),
-                ),
-              ),
+            // if (frontImg == null || labelImg == null)
+            //   Padding(
+            //     padding: const EdgeInsets.symmetric(vertical: Sizes.s),
+            //     child: OutlinedButton.icon(
+            //       onPressed: () {
+            //         if (frontImg == null) {
+            //           controller.captureFoodImage(ImageSource.camera);
+            //         } else if (labelImg == null) {
+            //           controller.captureLabelImage(ImageSource.camera);
+            //         }
+            //       },
+            //       icon: const Icon(Icons.add_photo_alternate_outlined),
+            //       label: Text(
+            //         frontImg == null
+            //             ? 'Add Product Front Image'
+            //             : 'Add Nutrition Label Image',
+            //       ),
+            //       style: OutlinedButton.styleFrom(
+            //         foregroundColor: Theme.of(context).primaryColor,
+            //         side: BorderSide(
+            //           color: Theme.of(context).primaryColor.withOpacity(0.5),
+            //           width: 1,
+            //         ),
+            //         padding: const EdgeInsets.symmetric(
+            //           vertical: 12,
+            //           horizontal: 16,
+            //         ),
+            //         shape: RoundedRectangleBorder(
+            //           borderRadius: BorderRadius.circular(Sizes.buttonRadius),
+            //         ),
+            //       ),
+            //     ),
+            //   ),
           ],
         ),
       );
@@ -431,10 +448,16 @@ class ScanLabelPage extends StatelessWidget {
       final analysisResult = controller.productAnalysisResult.value;
       final isAnalyzing = controller.isAnalyzingProduct.value;
       final errorMsg = controller.productAnalysisController.errorMessage.value;
-
+      // return const NutrientInfoShimmer();
       // Show shimmer ONLY when actively analyzing AFTER step 2 (images provided)
       if (isAnalyzing && controller.scanningStep.value >= 2) {
-        return const NutrientInfoShimmer();
+        return Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Sizes.defaultSpace,
+            vertical: Sizes.m,
+          ),
+          child: const NutrientInfoShimmer(),
+        );
       }
       // Show results if analysis succeeded
       else if (analysisResult != null &&
@@ -461,12 +484,8 @@ class ScanLabelPage extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed:
                     controller.productAnalysisController.retryLastAnalysis,
-                icon: const Icon(Icons.refresh, size: 20),
+                icon: const Icon(Icons.refresh),
                 label: const Text("Retry Analysis"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                ),
               ),
             ],
           ),
@@ -485,34 +504,34 @@ class ScanLabelPage extends StatelessWidget {
     ScanLabelPageController controller,
     ProductAnalysisModel analysisResult,
   ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Sizes.defaultSpace / 2),
-      child: Column(
-        children: [
-          const Divider(), // Separator before details
-          const SizedBox(height: Sizes.s),
-          _buildCategorizedNutrientSections(
-            context,
-            controller,
-            analysisResult,
-          ), // Categorized Tiles
-          _buildConcernsSection(
-            context,
-            controller,
-            analysisResult,
-          ), // Health Insights/Concerns
-          _buildServingConsumptionSection(
-            context,
-            controller,
-            analysisResult,
-          ), // Serving Input
-          const SizedBox(height: Sizes.spaceBtwItems),
-          InkWell(
-            onTap: controller.navigateToAskAi,
-            child: const AskAiWidget(),
-          ), // Ask AI prompt
-        ],
-      ),
+    return Column(
+      children: [
+        const Divider(), // Separator before details
+        // const SizedBox(height: Sizes.s),
+        _buildCategorizedNutrientSections(
+          context,
+          controller,
+          analysisResult,
+        ), // Categorized Tile
+        const Divider(),
+        _buildConcernsSection(
+          context,
+          controller,
+          analysisResult,
+        ), // Health Insights/Concerns
+        const Divider(),
+        _buildServingConsumptionSection(
+          context,
+          controller,
+          analysisResult,
+        ), // Serving Input
+        const Divider(),
+        const SizedBox(height: Sizes.spaceBtwItems),
+        InkWell(
+          onTap: controller.navigateToAskAi,
+          child: const AskAiWidget(),
+        ), // Ask AI prompt
+      ],
     );
   }
 
@@ -538,7 +557,10 @@ class ScanLabelPage extends StatelessWidget {
 
     if (allNutrients.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: Sizes.m),
+        padding: const EdgeInsets.symmetric(
+          vertical: Sizes.s,
+          horizontal: Sizes.defaultSpace,
+        ),
         child: Text(
           "Could not extract nutrients from label.",
           style: Theme.of(context).textTheme.bodyMedium,
@@ -546,40 +568,46 @@ class ScanLabelPage extends StatelessWidget {
       );
     }
 
-    return Column(
-      children: [
-        if (goodNutrients.isNotEmpty)
-          _buildNutrientSection(
-            context,
-            title: "✅ Optimal Nutrients",
-            nutrients: goodNutrients,
-            color: Colors.green.shade600,
-          ),
-        if (moderateNutrients.isNotEmpty)
-          _buildNutrientSection(
-            context,
-            title: "⚠️ Moderate Levels",
-            nutrients: moderateNutrients,
-            color: Colors.orange.shade700,
-          ),
-        if (badNutrients.isNotEmpty)
-          _buildNutrientSection(
-            context,
-            title: "🚫 Watch Out For",
-            nutrients: badNutrients,
-            color: Colors.red.shade600,
-          ),
-        if (goodNutrients.isEmpty &&
-            moderateNutrients.isEmpty &&
-            badNutrients.isEmpty &&
-            allNutrients.isNotEmpty)
-          _buildNutrientSection(
-            context,
-            title: "ℹ️ Nutrients Found",
-            nutrients: allNutrients,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: Sizes.s,
+        horizontal: Sizes.defaultSpace,
+      ),
+      child: Column(
+        children: [
+          if (goodNutrients.isNotEmpty)
+            _buildNutrientSection(
+              context,
+              title: "Optimal Nutrients",
+              nutrients: goodNutrients,
+              color: Colors.green.shade600,
+            ),
+          if (moderateNutrients.isNotEmpty)
+            _buildNutrientSection(
+              context,
+              title: "Moderate Levels",
+              nutrients: moderateNutrients,
+              color: Colors.orange.shade700,
+            ),
+          if (badNutrients.isNotEmpty)
+            _buildNutrientSection(
+              context,
+              title: "Watch Out For",
+              nutrients: badNutrients,
+              color: Colors.red.shade600,
+            ),
+          if (goodNutrients.isEmpty &&
+              moderateNutrients.isEmpty &&
+              badNutrients.isEmpty &&
+              allNutrients.isNotEmpty)
+            _buildNutrientSection(
+              context,
+              title: "Nutrients Found",
+              nutrients: allNutrients,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+        ],
+      ),
     );
   }
 
@@ -594,9 +622,11 @@ class ScanLabelPage extends StatelessWidget {
     if (primaryConcerns.isEmpty) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Sizes.defaultSpace / 2,
-        vertical: Sizes.spaceBtwItems,
+      padding: const EdgeInsets.fromLTRB(
+        Sizes.defaultSpace,
+        Sizes.m - 2,
+        Sizes.defaultSpace,
+        0,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -608,7 +638,7 @@ class ScanLabelPage extends StatelessWidget {
           const SizedBox(height: Sizes.spaceBtwItems),
           ...primaryConcerns.map(
             (concern) => Padding(
-              padding: const EdgeInsets.only(bottom: Sizes.spaceBtwItems),
+              padding: const EdgeInsets.only(bottom: Sizes.m - 2),
               child: NutrientBalanceCard(
                 issue: concern.issue,
                 explanation: concern.explanation,
@@ -624,7 +654,7 @@ class ScanLabelPage extends StatelessWidget {
               ),
             ),
           ),
-          const Divider(),
+          const SizedBox(height: Sizes.m),
         ],
       ),
     );
@@ -648,13 +678,13 @@ class ScanLabelPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: Sizes.s),
             child: SectionHeadingWithAccent(color: color, title: title),
           ),
-          const SizedBox(height: Sizes.s),
+          const SizedBox(height: Sizes.m - 2),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Sizes.xs),
-            child: Wrap(
+            child: Column(
               spacing: Sizes.s,
 
-              runSpacing: Sizes.s,
+              // runSpacing: Sizes.s,
               children: nutrients
                   .map(
                     (nutrientDetail) => NutrientTile.fromNutrientDetail(
@@ -665,11 +695,8 @@ class ScanLabelPage extends StatelessWidget {
                   .toList(),
             ),
           ),
-          const SizedBox(height: Sizes.m),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: Sizes.s),
-            child: const Divider(thickness: 0.5),
-          ),
+          const SizedBox(height: Sizes.m + 2),
+          // const Divider(thickness: 0.5),
         ],
       ),
     );
@@ -799,7 +826,7 @@ class ImagePreviewCard extends StatelessWidget {
   final String title;
   final File? imageFile;
   final VoidCallback? onRetake;
-  final VoidCallback? onDelete;
+
   final bool isFrontImage;
 
   const ImagePreviewCard({
@@ -807,7 +834,7 @@ class ImagePreviewCard extends StatelessWidget {
     required this.title,
     required this.imageFile,
     this.onRetake,
-    this.onDelete,
+
     this.isFrontImage = true,
   });
 
@@ -895,22 +922,22 @@ class ImagePreviewCard extends StatelessWidget {
                   onPressed: onRetake,
                 ),
                 // Delete Button
-                TextButton.icon(
-                  icon: const Icon(Iconsax.trash, size: 16, color: Colors.red),
-                  label: const Text(
-                    'Remove',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: onDelete,
-                ),
+                // TextButton.icon(
+                //   icon: const Icon(Iconsax.trash, size: 16, color: Colors.red),
+                //   label: const Text(
+                //     'Remove',
+                //     style: TextStyle(color: Colors.red),
+                //   ),
+                //   style: TextButton.styleFrom(
+                //     padding: const EdgeInsets.symmetric(
+                //       horizontal: 12,
+                //       vertical: 6,
+                //     ),
+                //     minimumSize: Size.zero,
+                //     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                //   ),
+                //   onPressed: onDelete,
+                // ),
               ],
             ),
           ),

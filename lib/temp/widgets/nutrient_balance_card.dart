@@ -17,11 +17,13 @@ class NutrientBalanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      // margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+            Theme.of(
+              context,
+            ).colorScheme.onErrorContainer.withValues(alpha: .1),
             Colors.transparent,
           ],
           begin: Alignment.topLeft,
@@ -29,16 +31,16 @@ class NutrientBalanceCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(Sizes.cardRadiusMd),
         border: Border.all(
-          color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+          color: Theme.of(context).colorScheme.secondary.withValues(alpha: .2),
           width: 1,
         ),
       ),
       child: ExpansionTile(
-        enableFeedback: true,
+        enableFeedback: false,
         shape: Border(),
         childrenPadding: const EdgeInsets.symmetric(
           horizontal: Sizes.defaultSpace / 2,
-          vertical: Sizes.defaultSpace / 2,
+          vertical: Sizes.m,
         ),
         backgroundColor: Colors.transparent,
         collapsedBackgroundColor: Colors.transparent,
@@ -46,8 +48,8 @@ class NutrientBalanceCard extends StatelessWidget {
           children: [
             Icon(
               Icons.warning_amber_rounded,
-              color: SColors.error,
-              size: Sizes.iconLg,
+              color: Theme.of(context).colorScheme.error,
+              // size: Sizes.iconLg,
             ),
             const SizedBox(width: Sizes.spaceBtwInputFields),
             Expanded(
@@ -66,9 +68,7 @@ class NutrientBalanceCard extends StatelessWidget {
             children: [
               Text(
                 explanation,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium!.copyWith(height: 1.5),
+                style: Theme.of(context).textTheme.bodyMedium,
                 // TextStyle(
                 //   color: Theme.of(context).colorScheme.onSurface,
                 //   fontSize: 14,

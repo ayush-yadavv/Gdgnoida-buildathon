@@ -1,6 +1,6 @@
-import 'dart:ui';
-
-import 'package:eat_right/data/services/logic/new_data_model/food_consumption_models/nutrients_data_models/nutrient_detail_model.dart'; // Import NutrientDetail
+import 'package:eat_right/data/services/logic/new_data_model/food_consumption_models/nutrients_data_models/nutrient_detail_model.dart';
+import 'package:eat_right/utils/constants/nutrient_dv.dart';
+import 'package:eat_right/utils/constants/sizes.dart';
 import 'package:flutter/material.dart';
 
 // Keep NutrientGrid if used elsewhere, update its NutrientData if needed or remove if unused
@@ -23,26 +23,37 @@ class NutrientTile extends StatefulWidget {
     this.insight,
   });
 
-  // Optional: Factory constructor to create from NutrientDetail easily
+  // Factory constructor to create from NutrientDetail with actual DV calculation
   factory NutrientTile.fromNutrientDetail(
     NutrientDetail detail,
     String? insightText,
   ) {
     // Format quantity and unit together
-    String quantityStr =
-        detail.value != null
-            ? "${detail.value!.toStringAsFixed(detail.value!.truncateToDouble() == detail.value ? 0 : 1)} ${detail.unit ?? ''}"
-                .trim()
-            : "N/A";
-    // TODO: Implement logic to calculate/retrieve %DV if needed, requires context (total diet goals)
-    String? dailyValueStr; // Placeholder for actual %DV calculation
+    String quantityStr = "N/A";
+    String? dailyValueStr;
+
+    if (detail.value != null) {
+      // Format the quantity string with value and unit
+      quantityStr =
+          "${detail.value!.toStringAsFixed(detail.value!.truncateToDouble() == detail.value ? 0 : 1)}${detail.unit?.isNotEmpty == true ? ' ${detail.unit}' : ''}"
+              .trim();
+
+      // Calculate %DV if possible
+      final percentageDV = NutrientDV.calculateDailyValuePercentage(
+        detail.name,
+        detail.value!.toDouble(),
+      );
+      if (percentageDV != null) {
+        dailyValueStr = "$percentageDV% DV";
+      }
+    }
 
     return NutrientTile(
       nutrient: detail.name,
       healthSign: detail.healthImpact,
       quantity: quantityStr,
       dailyValue: dailyValueStr,
-      insight: insightText, // Pass insight from external map or logic
+      insight: insightText,
     );
   }
 
@@ -53,230 +64,159 @@ class NutrientTile extends StatefulWidget {
 class _NutrientTileState extends State<NutrientTile>
     with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
-  late AnimationController _animationController;
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+    _controller = AnimationController(
       vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.3, 1.0, curve: Curves.easeInOut),
+      ),
     );
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _controller.dispose();
     super.dispose();
+  }
+
+  void _toggleExpanded() {
+    if (widget.insight != null) {
+      setState(() {
+        _isExpanded = !_isExpanded;
+        if (_isExpanded) {
+          _controller.forward();
+        } else {
+          _controller.reverse();
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    Color backgroundColor;
-    Color borderColor;
-    Color iconColor;
-    IconData statusIcon;
+    // Determine colors based on health impact
+    final Color backgroundColor = widget.healthSign?.toLowerCase() == 'good'
+        ? const Color(0xFF4CAF50).withOpacity(0.1)
+        : widget.healthSign?.toLowerCase() == 'moderate'
+        ? const Color(0xFFFFC107).withOpacity(0.1)
+        : const Color(0xFF9E9E9E).withOpacity(0.1);
 
-    // Determine colors and icon based on healthSign
-    switch (widget.healthSign?.toLowerCase()) {
-      case "good":
-        backgroundColor = const Color(
-          0xFF4CAF50,
-        ).withOpacity(0.1); // Lighter green
-        borderColor = const Color(0xFF4CAF50).withOpacity(0.3);
-        iconColor = const Color(0xFF4CAF50);
-        statusIcon = Icons.check_circle_outline;
-        break;
-      case "bad":
-        backgroundColor = const Color(
-          0xFFFF5252,
-        ).withOpacity(0.1); // Lighter red
-        borderColor = const Color(0xFFFF5252).withOpacity(0.3);
-        iconColor = const Color(0xFFFF5252);
-        statusIcon = Icons.warning_amber_rounded; // Changed icon
-        break;
-      case "moderate":
-        backgroundColor = const Color(
-          0xFFFFC107,
-        ).withOpacity(0.1); // Lighter amber
-        borderColor = const Color(0xFFFFC107).withOpacity(0.3);
-        iconColor = const Color(0xFFFFC107);
-        statusIcon = Icons.info_outline_rounded;
-        break;
-      default: // Neutral / Unknown
-        backgroundColor = Theme.of(
-          context,
-        ).colorScheme.secondaryContainer.withOpacity(0.5); // Use theme color
-        borderColor = Theme.of(context).colorScheme.outline.withOpacity(0.3);
-        iconColor = Theme.of(context).colorScheme.onSecondaryContainer;
-        statusIcon = Icons.help_outline; // Or another neutral icon
-    }
+    final Color borderColor = widget.healthSign?.toLowerCase() == 'good'
+        ? const Color(0xFF4CAF50).withValues()
+        : widget.healthSign?.toLowerCase() == 'moderate'
+        ? const Color(0xFFFFC107).withOpacity(0.1)
+        : const Color(0xFF9E9E9E).withOpacity(0.1);
 
-    // Use theme for text colors for better adaptability
-    final primaryTextColor = Theme.of(context).textTheme.bodyMedium!.color;
-    final secondaryTextColor = Theme.of(context).textTheme.bodySmall!.color;
-    final dvColor = iconColor; // Match DV color to icon color for consistency
+    final Color dvColor = widget.healthSign?.toLowerCase() == 'good'
+        ? const Color(0xFF4CAF50)
+        : widget.healthSign?.toLowerCase() == 'moderate'
+        ? const Color(0xFFFFC107)
+        : const Color(0xFF9E9E9E);
 
-    return Container(
-      // Removed outer color, rely on decoration color
-      child: GestureDetector(
-        onTap:
-            widget.insight != null
-                ? () {
-                  // Only allow tap if insight exists
-                  setState(() {
-                    _isExpanded = !_isExpanded;
-                    if (_isExpanded) {
-                      _animationController.forward();
-                    } else {
-                      _animationController.reverse();
-                    }
-                  });
-                }
-                : null, // Disable tap if no insight
-        child: ClipRRect(
-          // Clip here for consistent rounding
-          borderRadius: BorderRadius.circular(16.0),
-          child: BackdropFilter(
-            // Optional: Keep backdrop if desired
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // Reduced blur
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300), // Faster animation
-              curve: Curves.easeInOut, // Smoother curve
-              // width: _isExpanded ? MediaQuery.of(context).size.width - 40 : null, // Adapt width calculation if needed
-              constraints: BoxConstraints(
-                maxWidth:
-                    _isExpanded
-                        ? double.infinity
-                        : 180, // Slightly wider max default
-                minWidth: 140,
-                minHeight: 70,
+    final Color secondaryTextColor =
+        Theme.of(context).brightness == Brightness.dark
+        ? Colors.white.withOpacity(0.8)
+        : Colors.black.withOpacity(0.7);
+
+    return GestureDetector(
+      onTap: _toggleExpanded,
+      child: Container(
+        // height: 44,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(color: borderColor, width: .8),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header row with nutrient name and quantity
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Sizes.m,
+                vertical: Sizes.m,
               ),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(16.0),
-                border: Border.all(color: borderColor, width: 1),
-              ),
-              // clipBehavior: Clip.antiAlias, // Clipping done by outer ClipRRect
-              child: SingleChildScrollView(
-                // Keep scroll for expanded content
-                physics:
-                    const NeverScrollableScrollPhysics(), // Disable scroll unless expanded height demands it
-                child: AnimatedSize(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  alignment: Alignment.topCenter,
-                  child: Padding(
-                    // Add overall padding
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0,
-                      vertical: 10.0,
+              child: Row(
+                children: [
+                  // Nutrient name and expand icon
+                  Text(
+                    widget.nutrient,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+
+                  // Expand/collapse icon (only if there's an insight)
+                  if (widget.insight != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4.0, right: 8.0),
+                      child: Icon(
+                        _isExpanded
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        size: 20,
+                        color: secondaryTextColor,
+                      ),
                     ),
-                    child: Column(
-                      mainAxisSize:
-                          MainAxisSize.min, // Important for AnimatedSize
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          // mainAxisSize: MainAxisSize.min, // Allow row to expand if needed
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start, // Align icon top
-                          children: [
-                            Icon(statusIcon, size: 18, color: iconColor),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              // Allow text column to take space
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    // Nutrient Name
-                                    widget.nutrient,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w600),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Row(
-                                    // Quantity and DV row
-                                    children: [
-                                      Text(
-                                        // Formatted Quantity
-                                        widget.quantity,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall?.copyWith(
-                                          color: secondaryTextColor,
-                                        ),
-                                      ),
-                                      if (widget.dailyValue != null &&
-                                          widget.dailyValue!.isNotEmpty) ...[
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          // Separator and DV%
-                                          "| ${widget.dailyValue}",
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall?.copyWith(
-                                            color: dvColor,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Expansion Arrow (only if insight exists)
-                            if (widget.insight != null)
-                              RotationTransition(
-                                turns: Tween(begin: 0.0, end: 0.5).animate(
-                                  CurvedAnimation(
-                                    parent: _animationController,
-                                    curve: Curves.easeInOut,
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.keyboard_arrow_down,
-                                  size: 20,
-                                  color: primaryTextColor?.withOpacity(0.7),
-                                ),
-                              ),
-                          ],
-                        ),
-                        // Expanded Insight Section
-                        if (_isExpanded && widget.insight != null)
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              top: 8.0,
-                            ), // Add padding above insight
-                            child: AnimatedOpacity(
-                              duration: const Duration(
-                                milliseconds: 200,
-                              ), // Faster fade
-                              opacity: _isExpanded ? 1.0 : 0.0,
-                              child: Text(
-                                widget.insight!,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodySmall?.copyWith(
-                                  color: secondaryTextColor,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+
+                  // Spacer to push quantity to the right
+                  const Spacer(),
+
+                  // Quantity and DV
+                  Text(
+                    widget.quantity,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: secondaryTextColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (widget.dailyValue != null) ...[
+                    const SizedBox(width: 4),
+                    Text(
+                      '| ${widget.dailyValue}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: dvColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            // Animated insight content
+            if (widget.insight != null)
+              SizeTransition(
+                sizeFactor: _animation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      Sizes.m,
+                      0,
+                      Sizes.m,
+                      Sizes.m,
+                    ),
+                    child: Text(
+                      widget.insight!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: secondaryTextColor,
+                        height: 1.4,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
+          ],
         ),
       ),
     );

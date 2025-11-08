@@ -3,6 +3,8 @@ import 'package:eat_right/data/services/logic/new_data_model/food_consumption_mo
 import 'package:eat_right/data/services/logic/new_logic/new_analysis_controllers.dart/food_consumption_controller.dart';
 import 'package:eat_right/data/services/logic/new_logic/new_analysis_controllers.dart/produc_analysis_controller.dart'; // Ensure correct path
 import 'package:eat_right/temp/screens/ask_ai_page.dart';
+import 'package:eat_right/utils/popups/full_screen_loader.dart';
+import 'package:eat_right/utils/constants/lottie_Str.dart';
 import 'package:flutter/material.dart'; // For BuildContext, TextEditingController etc.
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -134,42 +136,58 @@ class ScanLabelPageController extends GetxController {
   }
 
   Future<void> logConsumption() async {
-    // Make async
-    final analysisResult =
-        productAnalysisController.productAnalysisResult.value;
-    if (analysisResult == null) {
+    try {
+      // Show loading dialog
+      SFullScreenLoader.openLoadingDialog('Logging your consumption...', Slottie.loading);
+      
+      final analysisResult = productAnalysisController.productAnalysisResult.value;
+      if (analysisResult == null) {
+        SFullScreenLoader.stopLoading();
+        Get.snackbar(
+          'Error',
+          'No analysis result available.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+      
+      if (servingsConsumed.value <= 0) {
+        SFullScreenLoader.stopLoading();
+        Get.snackbar(
+          'Error',
+          'Please enter servings consumed (> 0).',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // Optional: Show DateTime picker for consumedAt
+      DateTime consumedAtTime = DateTime.now();
+
+      // Log the consumption
+      bool success = await foodConsumptionController.logProductConsumption(
+        analysis: analysisResult,
+        servingsConsumed: servingsConsumed.value,
+        consumedAt: consumedAtTime,
+      );
+
+      // Stop loading regardless of success/failure
+      SFullScreenLoader.stopLoading();
+
+      if (success) {
+        resetScanning(); // Reset the page after successful log
+      }
+    } catch (e) {
+      // Ensure loader is stopped if an error occurs
+      SFullScreenLoader.stopLoading();
+      
+      // Show error to user
       Get.snackbar(
         'Error',
-        'No analysis result available.',
+        'Failed to log consumption: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
       );
-      return;
     }
-    if (servingsConsumed.value <= 0) {
-      Get.snackbar(
-        'Error',
-        'Please enter servings consumed (> 0).',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return;
-    }
-
-    // Optional: Show DateTime picker for consumedAt
-    DateTime consumedAtTime = DateTime.now();
-
-    // Await the logging process if you want to perform actions after (like navigation)
-    bool success = await foodConsumptionController.logProductConsumption(
-      analysis: analysisResult,
-      servingsConsumed: servingsConsumed.value,
-      consumedAt: consumedAtTime,
-    );
-
-    if (success) {
-      // Optionally navigate back or reset after successful logging
-      // Get.back();
-      resetScanning(); // Reset the page after successful log
-    }
-    // Error handling is done within foodConsumptionController via snackbar
   }
 
   void navigateToAskAi() {
