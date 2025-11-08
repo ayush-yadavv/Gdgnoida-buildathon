@@ -17,6 +17,10 @@
 
 `eat_right` is a mobile application built with Flutter, designed to help users understand and manage their nutrition through powerful AI-driven analysis and intuitive tracking features.
 
+## 🎥 MVP Demo
+
+Check out our MVP demo video: [Watch on YouTube](https://youtu.be/MDwYYW6DeX8)
+
 [![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)](https://flutter.dev)
 [![GetX](https://img.shields.io/badge/GetX-State_Management-blue?style=for-the-badge)](https://pub.dev/packages/get)
 [![Firebase](https://img.shields.io/badge/Firebase-Firestore-orange?style=for-the-badge&logo=firebase&logoColor=white)](https://firebase.google.com/)
